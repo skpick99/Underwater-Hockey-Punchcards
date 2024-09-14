@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
+  <a href="https://github.com/skpick99/Underwater-Hockey-Punchcards">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -15,9 +15,9 @@
     <br />
 
     ·
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    <a href="https://github.com/skpick99/Underwater-Hockey-Punchcards/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/skpick99/Underwater-Hockey-Punchcards/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
 
@@ -68,10 +68,10 @@ The system uses SendGrid to send emails and it needs to be installed properly to
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
+1. Get a free API Key
 2. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/skpick99/Underwater-Hockey-Punchcards.git
    ```
 3. Setup SendGrid
 4. Update info.json for your SendGrid keys, Meetup names, etc.
@@ -96,7 +96,7 @@ see the log.txt for my latest todo list and what I'm working on
 
 William Mantzell is working on a system to auto-generate teams based on Meetup signups
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/skpick99/Underwater-Hockey-Punchcards/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -132,10 +132,10 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 ## Contact
 
 Scott Pickett  bbbvvgtm@yahoo.com
-This is not my normal email, so I may not see your email. Sorry. 
+This is not my primary email, so I may not see your email. Sorry. 
 If you want to get ahold of me, it's probably best to get my phone number from someone in the San Diego UWH club.
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/skpick99/Underwater-Hockey-Punchcards](https://github.com/skpick99/Underwater-Hockey-Punchcards)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -145,7 +145,6 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 ## Acknowledgments
 
 * []()
-* []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -153,16 +152,16 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/skpick99/Underwater-Hockey-Punchcards.svg?style=for-the-badge
+[contributors-url]: https://github.com/skpick99/Underwater-Hockey-Punchcards/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/skpick99/Underwater-Hockey-Punchcards.svg?style=for-the-badge
+[forks-url]: https://github.com/skpick99/Underwater-Hockey-Punchcards/network/members
+[stars-shield]: https://img.shields.io/github/stars/skpick99/Underwater-Hockey-Punchcards.svg?style=for-the-badge
+[stars-url]: https://github.com/skpick99/Underwater-Hockey-Punchcards/stargazers
+[issues-shield]: https://img.shields.io/github/issues/skpick99/Underwater-Hockey-Punchcards.svg?style=for-the-badge
+[issues-url]: https://github.com/skpick99/Underwater-Hockey-Punchcards/issues
+[license-shield]: https://img.shields.io/github/license/skpick99/Underwater-Hockey-Punchcards.svg?style=for-the-badge
+[license-url]: https://github.com/skpick99/Underwater-Hockey-Punchcards/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png
