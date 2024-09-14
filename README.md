@@ -51,7 +51,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
- `github_username`, `repo_name`
+ `skpick99`, `Underwater-Hockey-Punchcards`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
