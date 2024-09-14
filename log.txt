@@ -1,0 +1,64 @@
+
+ToDo List
+----------
+code to check for meetup user names beginning with "User " 
+	error that LibreOffice/Excel automatically creates by capitalizing "U" which breaks punchcard system
+when update punchcards.csv, sort it
+occasional maintenance
+	move old punchcards (status=prev and last punchdate over 2 months ago) to punchcards_history.csv	
+add menu items for 
+	change add-new-player to auto search the last 5-10 games
+	allow change date by choosing from recent games
+	check for game date wrong based on latest signup date
+	existing player using new meetup id (check when adding new player)
+	allow user to edit the data through software (instead of excel/libreoffice)
+	allow two players to share a punchcard via software (instead of excel/libreoffice)
+some automated method of data backup
+method of sharing data so two operators can switch off running the software
+method of sharing old game data (YYYYMMDD.csv files)
+
+Expand push information to include texting
+Split the cross reference file (meetup_roster.csv) handling to its own class
+For adding a manual punch for user with no punchcard, create a past-due punchcard
+If you're updating the next day, it's too easy to download the meetup file to the wrong date
+Allow reduced email notifications - only if requested
+Rewrite as a web application, appropriate for general use - don't hold your breath
+
+
+Create short manual
+	Installation 
+		my hockey directory is D:\hockey\autopay.  
+		My Windows download directory is D:\Downloads.  
+		install python3, list of imports, sendgrid for emails
+		Your meetup name must include both "UNDERWATER" and "HOCKEY" in the title (case insensitive)
+	Run 
+		warning: don't download too early or you'll get the prior hockey game info from Meetup
+		warning: move date if processing game from prior day(s)
+		go to hockey directory and type "python CMenu.py"
+		describe menu items
+	Other
+		Data file layouts (*.csv files/keys, libreoffice=tabs only)
+			thoughts on improvements
+		python files
+		how to hand edit files
+		errors and how to correct them
+		what's not yet implemented
+
+Decide standard way of archiving old game date files (YYYYMMDD.csv files)
+
+Code to pull 3 month old punchcards put in punchcard_history file
+	Re-alphabetize the punchcard file at the same time to make it easier to hand edit
+
+ID or Reverse wrong gameday download because too early
+ID or Reverse wrong date on gameday download
+Get gameday date from datafile, or at least warn about potential error
+	No one signs up on day of game would be unusual
+	Games not on Friday or Sunday would be unusual
+
+HOWTO
+------
+Download game day too early - delete files
+Download game day to wrong date - delete files
+Back out a punch because didn't play
+
+
