@@ -350,12 +350,15 @@ class CPunchcards:
                 # check if any money left on this card                            
     
     #-------------------------------------------------------------------------------    
-    def manualPunch(self, punchDate):
+    def manualPunch(self, punchDate, gameStars = 20):       # gameStars: 20=full punch, 10=half punch
         
         email = CEmail.CEmail()
         roster = CRoster.CRoster()  
 
-        print("\n\nManual Punch")
+        if gameStars == 20:
+            print("\n\nManual Punch")
+        else:
+            print("\n\nManual HALF of a Punch")
         
         while True:
 
@@ -378,12 +381,15 @@ class CPunchcards:
                 if starcount is None:
                     starcount = 0
                     print("\nERROR reading starcount in CPunchcards for ", playerMeetupName)
-                if starcount >= 20:
+                if starcount >= gameStars:
                     emailAddress = roster.getEmail(playerHockeyID) 
                     meetupName = roster.getMeetupName(playerHockeyID)
-                    subject, body = email.composeUseStarsForFreeGameEmail(playerHockeyID, meetupName, punchDate)
+                    if gameStars == 20:
+                        subject, body = email.composeUseStarsForFreeGameEmail(playerHockeyID, meetupName, punchDate)
+                    else:
+                        subject, body = email.composeUseStarsForFreeHalfGameEmail(playerHockeyID, meetupName, punchDate)
                     email.sendEmail(emailAddress, subject, body)
-                    starcount -= 20
+                    starcount -= gameStars
                     roster.setStars(playerHockeyID, starcount)
                     gamePaid = True
 
@@ -394,8 +400,16 @@ class CPunchcards:
                 if slot >= 0:
                     print(f"{playerHockeyID} {playerMeetupName} >>> Payment {slot+1} ({10-slot} left on this card)")
                     paid = self.makePayment(player=playerHockeyID, date=punchDate)
+                    # when only charging a half-game (10 stars), charge them a punch then give them 10 stars so only charging them half a game
+                    if gameStars != 20:
+                        starcount = roster.getStars(playerHockeyID)
+                        if starcount is None:
+                            starcount = 0
+                            print("\nERROR2 reading starcount in CPunchcards for ", playerMeetupName)
+                        starcount += 20 - gameStars
+                        roster.setStars(playerHockeyID, starcount)
                 if paid:
-                    subject, body = email.composeUsePunchcardEmail(playerHockeyID, playerMeetupName, punchDate, self.punchcards[pcIdx], slot, False, starcount)
+                    subject, body = email.composeUsePunchcardEmail(playerHockeyID, playerMeetupName, punchDate, self.punchcards[pcIdx], slot, False, starcount, gameStars)
                     email.sendEmail(playerEmail, subject, body)   
                     ccList = self.info.getValue("cc_punchused") 
                     for ccEmail in ccList:

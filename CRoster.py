@@ -18,8 +18,8 @@ class CRoster:
         self.path = getHockeyPath()
         self.rosterFileHeader = [
             "Hockey User ID", "Meetup name", "First", "Last", "Email", 
-            "Address", "isMember", "textPhone", "Stars", "altPhone", 
-            "altPhoneDesc", "useEmail", "useText", "everyCharge", 
+            "Address", "isMember", "textPhone", "altPhone", "StarsCur", 
+            "StarsTot", "useEmail", "useText", "everyCharge", 
             "weekly", "monthly", "whenXleft"
             ]
         self.roster = {}

@@ -44,7 +44,7 @@ class CEmail:
             return None
 
     #-------------------------------------------------------------------------------    
-    def composeUsePunchcardEmail(self, playerID, meetupName, date, pcRow, pcIdx, bEarlyBird, starcount):
+    def composeUsePunchcardEmail(self, playerID, meetupName, date, pcRow, pcIdx, bEarlyBird, starcount, gameStars):
         
         punchcards = CPunchcards.CPunchcards()
         remainingPunches = punchcards.totalSlotCount - pcIdx - 1
@@ -65,12 +65,16 @@ class CEmail:
         body += "You played Underwater Hockey on " + self.convertDate(date) + ". We hope you enjoyed the game.\n\n"
         if self.useStars:
             if bEarlyBird:
-                body += "You signed up by Thursday and earned a star, bringing your total star count to " + str(starcount) + ".\n"
+                body += "You signed up by Thursday and earned a star, bringing your current star count to " + str(starcount) + ".\n"
             else:
                 body += "FYI, if you know you're playing in advance and sign up by midnight on Thursday, you'll earn a star.\n"
+                if starcount > 0:
+                    body += "Your current star count is " + str(starcount) + ".\n"
             body += "Collect 20 stars and you'll get a free game of Underwater Hockey.\n\n"
 
         body += "You used punch number " + str(pcIdx+1) + " on the punchcard you purchased on " + pcRow[punchcards.P_PURCHASEDATE] + "\n"
+        if gameStars != 20:
+            body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
         for i in range(punchcards.totalSlotCount):
             body += "%10d %s\n" % (i+1, self.convertDate(pcRow[punchcards.slotIdx(i)]))
         body += "You have %d punches remaining." % (remainingPunches)
@@ -93,6 +97,15 @@ class CEmail:
         subject = "You just played a FREE GAME of Underwater Hockey using your Early Signup stars!"
         body = "Hi " + meetupName + ",\n\n"
         body += "You played a FREE game of Underwater Hockey on " + self.convertDate(date) + ".\n\n"
+        body += self.readFileToString("email_staruse.txt")
+        return subject,body
+    
+    #-------------------------------------------------------------------------------    
+    def composeUseStarsForFreeHalfGameEmail(self, hockeyID, meetupName, date):
+
+        subject = "You just played a FREE HALF GAME of Underwater Hockey using your Early Signup stars!"
+        body = "Hi " + meetupName + ",\n\n"
+        body += "You played a FREE half game of Underwater Hockey on " + self.convertDate(date) + ".\n\n"
         body += self.readFileToString("email_staruse.txt")
         return subject,body
   

@@ -33,6 +33,7 @@ class CMenu:
         print("2. Display download")
         print("3. Charge punchcards for current game")
         print("4. Manual punch")
+        print("H. Manual half punch")
         print("5. Invitation email to new player")
         print("6. Add new player from current game")
         print("7. Display player information")
@@ -85,7 +86,12 @@ class CMenu:
             # charge punchcards for current game
             elif choice == "4":
                 pc = CPunchcards()
-                pc.manualPunch(self.gamedate.strftime('%Y%m%d'))
+                pc.manualPunch(self.gamedate.strftime('%Y%m%d'), 20)
+
+            # charge half of a punch for current game
+            elif choice.upper() == "H":
+                pc = CPunchcards()
+                pc.manualPunch(self.gamedate.strftime('%Y%m%d'), 10)                
 
             # send invitational email to new player
             elif choice == "5":

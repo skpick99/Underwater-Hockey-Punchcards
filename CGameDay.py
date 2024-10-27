@@ -297,7 +297,7 @@ class CGameDay:
         if paid:
             emailAddress = roster.getEmail(hockeyID) 
             meetupName = roster.getMeetupName(hockeyID)
-            subject, body = email.composeUsePunchcardEmail(hockeyID, meetupName, self.date, punchcards.punchcards[pcIdx], slot, bEarlyBird, starcount)
+            subject, body = email.composeUsePunchcardEmail(hockeyID, meetupName, self.date, punchcards.punchcards[pcIdx], slot, bEarlyBird, starcount, 20)
             email.sendEmail(emailAddress, subject, body)
             ccList = self.info.getValue("cc_punchused") 
             for ccEmail in ccList:
