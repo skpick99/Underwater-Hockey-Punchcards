@@ -12,6 +12,7 @@ from utils import *
 from CInfo import CInfo
 
 CHROME_PATH_WINDOWS = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+CHROME_PATH_WINDOWS = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 CHROME_PATH_MAC = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 # Setting up the path for Google Chrome on macOS
@@ -158,7 +159,8 @@ def downloadAttendees(urlSuffix="?type=upcoming"):
     filename = ""
     eventnumber = getEventNumber(pagesource)
     if len(eventnumber) > 0:
-        urlsend = url + eventnumber + "/csv/"
+        #urlsend = url + eventnumber + "/csv/"
+        urlsend = url + eventnumber + "/attendees/"        
         thread = Thread(target=downloadMeetupAttendeesThread, args=(urlsend,))
         thread.start()
         thread.join()

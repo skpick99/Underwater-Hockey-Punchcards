@@ -176,14 +176,14 @@ class CEmail:
         
         mail = Mail(from_email, toAddress, subject, message)
         #mail_json = mail.get()
-        try:
-            sg = SendGridAPIClient(self.SENDGRID_API_KEY)
-            response = sg.send(mail)            
-            #response = my_sg.client.mail.send.post(request_body=mail_json)
-            pass
-        except:
-            print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
-            return False
+        #try:
+        sg = SendGridAPIClient(self.SENDGRID_API_KEY)
+        response = sg.send(mail)            
+        #response = my_sg.client.mail.send.post(request_body=mail_json)
+        pass
+        #except:
+        #    print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
+        #    return False
         
         print("-----------------------------------: Email successfully sent TO", toAddress)
         print("SUBJECT", subject)
@@ -196,15 +196,14 @@ if __name__ == "__main__":
     
     email = CEmail()
     info = CInfo()
-    
-    name = "Scott"
+     
     emailAddress = "********@gmail.com"
 
-    subject,body = email.composeInviteEmail(name)
+    subject,body = email.composeInviteEmail()
 
     ccList = info.getValue("cc_invite") 
     for ccEmail in ccList:                
-        email.sendEmail(ccEmail, "An invite has been sent to " + name + " at " + emailAddress, body)
+        email.sendEmail(ccEmail, "An invite has been sent to " + emailAddress, body)
 
     email.sendEmail(emailAddress, subject, body)
     

@@ -8,7 +8,7 @@ from CInfo import CInfo
 from utils import *
 sys.path.append("\\")
 
-VALID_STATUSES = {"curr", "next", "prev", "pastdue"}
+VALID_STATUSES = {"curr", "next", "prev", "pastdue", "REFUNDED"}
 
 #-------------------------------------------------------------------------------
 class CPunchcards:
@@ -520,7 +520,7 @@ class CPunchcards:
     # count historical punches used for each player in a given period of time
     def countGamesPlayedInYear(self):          
         startdate = '20240101'
-        enddate = '20240331'
+        enddate = '20241231'
         historicPunchcards = self.loadPunchcards(includeHistory=True)
         playerCountDict, totalGameCount = self.countPunchesUsed(historicPunchcards, startdate, enddate)
         sortedPlayerCountsDict = dict(sorted(playerCountDict.items(), key=lambda item: item[1]['count'], reverse=True))

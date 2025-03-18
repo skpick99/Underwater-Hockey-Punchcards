@@ -39,6 +39,7 @@ class CMenu:
         print("7. Display player information")
         print("8. Punchcard purchase")
         print("9. Send past-due notices")
+        print("A. Prepaid counts")
         print()
         choice = input("Enter selection (or <enter> to quit) ")
         return choice
@@ -121,7 +122,17 @@ class CMenu:
             # send pastdue notices
             elif choice == "9":
                 pc = CPunchcards()
-                pc.sendPastDueNotices()                   
+                pc.sendPastDueNotices()      
+
+            # purchase punchcard
+            elif choice == "A" or choice == "a":
+                pc = CPunchcards()   
+                pc.countGamesPlayedInYear()       
+                x = pc.countPrepaymentPunches()
+                print()
+                print(x, "prepaid, but not yet used, punches.  Total value (at $9.00 each) is   $", x*9)
+                print()
+    
         return              
             
 #-------------------------------------------------------------------------------           

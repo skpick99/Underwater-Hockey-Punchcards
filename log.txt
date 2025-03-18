@@ -30,6 +30,7 @@ Create short manual
 		my hockey directory is D:\hockey\autopay.  
 		My Windows download directory is D:\Downloads.  
 		install python3, list of imports, sendgrid for emails
+		pip install lxml
 		Your meetup name must include both "UNDERWATER" and "HOCKEY" in the title (case insensitive)
 	Run 
 		warning: don't download too early or you'll get the prior hockey game info from Meetup
@@ -61,4 +62,20 @@ Download game day too early - delete files
 Download game day to wrong date - delete files
 Back out a punch because didn't play
 
+Setup a new repository
+-----------------------
+Go to github.com/skpick99
+Click + in upper right corner
+Add README and gitignore
+Under Code-Clone, copy the URL (e.g. https://github.com/skpick99/TapeStomp.git)
+In command prompt at directory where you want to add my code subdirectory
+"git clone " then the URL from above
+Pore in all my software
+Add it using "pushing a new commit" instructions below
+
+pushing a new commit
+---------------------
+git add <filenames>
+git commit -m "descriptive comment"
+git push -u origin main
 

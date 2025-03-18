@@ -23,11 +23,13 @@ class CGameDay:
         self.X_MEETUPUSERID = 1
         self.X_HOCKEYUSERID = 2   
         self.meetupRosterHeader = ["Meetup name", "Meetup User ID", "Hockey User ID"]
+        self.fileDelimiter = ","       # Meetup file delimiter (old format='\t', new format=',')
         self.gameday = {}
         self.gameday_df = None
         self.info = CInfo()
         self.useStars = self.info.getValue("use_stars")
         self.date = date
+        #self.date = "20250105"
         if len(date) > 0:            
             self._loadGameDay()
         
@@ -46,23 +48,38 @@ class CGameDay:
         
         # loadup attendees from meetup
         self.gameday = {}
-        filepath = os.path.join(self.path, "games", f"{self.date}.xls")
-        if not os.path.exists(filepath):
-            print(f"\nERROR 594: No game file exists for {self.date}")
-            return       
-            
-        try:
-            df = pd.read_csv(filepath, delimiter='\t')
-            df['RSVPed on'] = pd.to_datetime(df['RSVPed on'])
-            self.gameday_df = df
-        except Exception as e:
-            print(f"Error reading attendees file: {e}")
-            self.gameday_df = None
+
+        # new MeetUp file format
+        filepath = os.path.join(self.path, "games", f"{self.date}.csv")
+        if os.path.exists(filepath):
+            try:
+                self.fileDelimiter = ','
+                df = pd.read_csv(filepath, delimiter=self.fileDelimiter)
+                df['RSVPed on'] = pd.to_datetime(df['RSVPed on'])
+                self.gameday_df = df
+            except Exception as e:
+                print(f"Error reading attendees file: {e}")
+                self.gameday_df = None
+
+        # old MeetUp file format
+        else:
+            filepath = os.path.join(self.path, "games", f"{self.date}.xls")
+            if not os.path.exists(filepath):
+                print(f"\nERROR 594: No game file exists for {self.date}")
+                return          
+            try:
+                self.fileDelimiter = '\t'
+                df = pd.read_csv(filepath, delimiter=self.fileDelimiter)
+                df['RSVPed on'] = pd.to_datetime(df['RSVPed on'])
+                self.gameday_df = df
+            except Exception as e:
+                print(f"Error reading attendees file: {e}")
+                self.gameday_df = None
 
         print(f"The following players played UWH on {self.date}")
         print(f"--------------------------------------------")        
         with open(filepath, newline='') as csvfile:
-            rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
+            rows = csv.reader(csvfile, delimiter=self.fileDelimiter, quotechar='"')
             for row_number,row in enumerate(rows):
                 print(', '.join(row))
                 if row_number > 0 and len(row) > 0:
