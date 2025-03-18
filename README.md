@@ -94,7 +94,7 @@ There is not yet any manual or documentation for this project. That is our next 
 Scott Pickett works occasionally on the punchcard system.
 see the log.txt for my latest todo list and what I'm working on
 
-William Mantzell is working on a system to auto-generate teams based on Meetup signups
+William Mantzel is working on a system to auto-generate teams based on Meetup signups
 
 See the [open issues](https://github.com/skpick99/Underwater-Hockey-Punchcards/issues) for a full list of proposed features (and known issues).
 
@@ -105,7 +105,7 @@ See the [open issues](https://github.com/skpick99/Underwater-Hockey-Punchcards/i
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contact Scott Pickett or William Mantzell from the San Diego Underwater Hockey club to discuss your new feature.
+Contact Scott Pickett or William Mantzel from the San Diego Underwater Hockey club to discuss your new feature.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 
