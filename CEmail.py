@@ -1,8 +1,10 @@
 import os
 import sys
-import sendgrid
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+#import sendgrid
+#from sendgrid import SendGridAPIClient
+#from sendgrid.helpers.mail import Mail
+import smtplib
+from email.message import EmailMessage
 import CPunchcards
 from CInfo import CInfo
 from utils import *
@@ -14,7 +16,8 @@ class CEmail:
         self.path = getHockeyPath()
         self.info = CInfo()
         self.useStars = self.info.getValue("use_stars")
-        self.SENDGRID_API_KEY = self.info.getValue("sendgrid_api_key")
+        #self.SENDGRID_API_KEY = self.info.getValue("sendgrid_api_key")
+        self.GOOGLE_APP_PASSWORD = self.info.getValue("google_app_password")
         
     def __enter__(self):
         return self
@@ -172,18 +175,28 @@ class CEmail:
     #-------------------------------------------------------------------------------    
     def sendEmail(self, toAddress, subject, message):
   
-        from_email = self.info.getValue("club_email")
-        
-        mail = Mail(from_email, toAddress, subject, message)
-        #mail_json = mail.get()
-        #try:
-        sg = SendGridAPIClient(self.SENDGRID_API_KEY)
-        response = sg.send(mail)            
-        #response = my_sg.client.mail.send.post(request_body=mail_json)
-        pass
-        #except:
-        #    print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
-        #    return False
+        # Create the email
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = self.info.getValue("club_email")
+        msg['To'] = toAddress
+        msg.set_content(message)
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
+            smtp.send_message(msg)
+
+        # SENDGRID EMAIL DISCONTINUED
+        #mail = Mail(from_email, toAddress, subject, message)
+        ##mail_json = mail.get()
+        ##try:
+        #sg = SendGridAPIClient(self.SENDGRID_API_KEY)
+        #response = sg.send(mail)            
+        ##response = my_sg.client.mail.send.post(request_body=mail_json)
+        #pass
+        ##except:
+        ##    print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
+        ##    return False
         
         print("-----------------------------------: Email successfully sent TO", toAddress)
         print("SUBJECT", subject)
@@ -193,9 +206,6 @@ class CEmail:
 
 #-------------------------------------------------------------------------------           
 if __name__ == "__main__":
-    
-    email = CEmail()
-    info = CInfo()
      
     emailAddress = "********@gmail.com"
 

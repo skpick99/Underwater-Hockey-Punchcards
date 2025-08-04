@@ -24,12 +24,16 @@ If you're updating the next day, it's too easy to download the meetup file to th
 Allow reduced email notifications - only if requested
 Rewrite as a web application, appropriate for general use - don't hold your breath
 
+sandiegouwh@gmail.com
+----------------------
+
+
 
 Create short manual
 	Installation 
 		my hockey directory is D:\hockey\autopay.  
 		My Windows download directory is D:\Downloads.  
-		install python3, list of imports, sendgrid for emails
+		install python3, list of imports
 		pip install lxml
 		Your meetup name must include both "UNDERWATER" and "HOCKEY" in the title (case insensitive)
 	Run 
@@ -75,6 +79,7 @@ Add it using "pushing a new commit" instructions below
 
 pushing a new commit
 ---------------------
+git pull
 git add <filenames>
 git commit -m "descriptive comment"
 git push -u origin main

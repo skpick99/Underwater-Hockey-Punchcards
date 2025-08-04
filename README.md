@@ -65,6 +65,7 @@ This is not designed to be run on a desktop. It is in the process of being setup
 
 log.txt are my notes when I initially setup the system. 
 The system uses SendGrid to send emails and it needs to be installed properly to allow the system to function properly. 
+UPDATE 08/01/2025: It no longer uses SendGrid. It now just sends emails directly using smtplib. (You need the App Password for sandiegouwh@gmail.com)
 
 ### Installation
 
@@ -73,7 +74,7 @@ The system uses SendGrid to send emails and it needs to be installed properly to
    ```sh
    git clone https://github.com/skpick99/Underwater-Hockey-Punchcards.git
    ```
-3. Setup SendGrid
+3. Setup SendGrid - NO LONGER REQUIRED AS OF 08/01/2025
 4. Update info.json for your SendGrid keys, Meetup names, etc.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

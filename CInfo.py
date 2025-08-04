@@ -17,6 +17,7 @@ class CInfo:
             "club_email": "***********@gmail.com",
             "admin_contact_info": "************, Email ************@gmail.com, Phone 800-***-****",
             "sendgrid_api_key": "Enter your SendGrid API key here",
+            "google_app_password": "Google App Password",
             "use_stars": True,
             "cc_purchase": ["*********@gmail.com", "*********@gmail.com"],
             "cc_invite": [],            
