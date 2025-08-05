@@ -1,5 +1,5 @@
 You can signup to pay for you Underwater Hockey games using our punchcard system.
-You pay $100 for 10 games and get one game free, for a total of 11 game punches on the eCard.
+You pay $100 for 10 games, for a total of 10 game punches on the eCard.
 
 Each time you play a game, the system automatically punches your eCard and sends you an email
 showing you each game you've been charged for, along with the number of punches remaining on

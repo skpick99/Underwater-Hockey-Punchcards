@@ -20,7 +20,7 @@ class CPunchcards:
         self.P_STATUS = 4
         self.P_PURCHASEDATE = 5
         self.firstPaySlot = 6
-        self.totalSlotCount = 11     
+        self.totalSlotCount = 10     
         self.info = CInfo()
         self.useStars = self.info.getValue("use_stars")
         self.punchcards = []
