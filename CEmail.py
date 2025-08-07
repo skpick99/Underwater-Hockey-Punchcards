@@ -50,7 +50,13 @@ class CEmail:
     def composeUsePunchcardEmail(self, playerID, meetupName, date, pcRow, pcIdx, bEarlyBird, starcount, gameStars):
         
         punchcards = CPunchcards.CPunchcards()
-        remainingPunches = punchcards.totalSlotCount - pcIdx - 1
+        # Calculate remaining punches, accounting for dummy value in new 10-punch cards
+        if punchcards.isNew10PunchCard(pcRow):
+            # For new 10-punch cards, max is 10 punches
+            remainingPunches = 10 - pcIdx - 1
+        else:
+            # For old 11-punch cards, max is 11 punches
+            remainingPunches = punchcards.totalSlotCount - pcIdx - 1
         boughtNextCard = False
         if remainingPunches <= 2:
             if punchcards.getPunchcardCount(playerID) > 1:
@@ -78,8 +84,13 @@ class CEmail:
         body += "You used punch number " + str(pcIdx+1) + " on the punchcard you purchased on " + pcRow[punchcards.P_PURCHASEDATE] + "\n"
         if gameStars != 20:
             body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
+        # Display punch slots, but handle dummy value in last slot for new 10-punch cards
         for i in range(punchcards.totalSlotCount):
-            body += "%10d %s\n" % (i+1, self.convertDate(pcRow[punchcards.slotIdx(i)]))
+            slotValue = pcRow[punchcards.slotIdx(i)]
+            if slotValue == 'DUMMY':
+                # Skip displaying dummy value in emails
+                continue
+            body += "%10d %s\n" % (i+1, self.convertDate(slotValue))
         body += "You have %d punches remaining." % (remainingPunches)
         
         if remainingPunches > 0 and remainingPunches <= 2 and not boughtNextCard:
@@ -128,8 +139,13 @@ class CEmail:
             for slot in range(punchcards.totalSlotCount):
                 slotVal = remainingPunchcards[0][punchcards.slotIdx(slot)]
                 if not slotVal is None and len(slotVal) == 0:
-                    break            
-            body += "Your previous punchcard (purchased on " + remainingPunchcards[0][3] + ") has " + str(punchcards.totalSlotCount - slot) + " slots remaining. We will finish it up first so you won't lose any plays.\n"  
+                    break
+            # Calculate remaining slots, accounting for dummy value in new 10-punch cards
+            if punchcards.isNew10PunchCard(remainingPunchcards[0]):
+                remainingSlots = 10 - slot  # For new 10-punch cards
+            else:
+                remainingSlots = punchcards.totalSlotCount - slot  # For old 11-punch cards
+            body += "Your previous punchcard (purchased on " + remainingPunchcards[0][3] + ") has " + str(remainingSlots) + " slots remaining. We will finish it up first so you won't lose any plays.\n"  
         body += "\nThanks for supporting Underwater Hockey.  We'll see you on the bottom.\n"
         return subject,body 
   
