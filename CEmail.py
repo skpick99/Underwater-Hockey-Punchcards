@@ -51,8 +51,7 @@ class CEmail:
         
         punchcards = CPunchcards.CPunchcards()
         # Calculate remaining punches using utility function
-        punches_used, remaining_slots, total_slots = punchcards.countPunchcardSlots(pcRow)
-        remainingPunches = remaining_slots
+        punches_used, remainingPunches, total_slots = punchcards.countPunchcardSlots(pcRow)
         boughtNextCard = False
         if remainingPunches <= 2:
             if punchcards.getPunchcardCount(playerID) > 1:
@@ -81,9 +80,7 @@ class CEmail:
         if gameStars != 20:
             body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
         # Display punch slots, but handle NULL value for new 10-punch cards
-        punches_used, remaining_slots, total_slots = punchcards.countPunchcardSlots(pcRow)
-        maxSlots = total_slots
-        for i in range(maxSlots):
+        for i in range(punchcards.totalSlotCount):
             slotValue = pcRow[punchcards.slotIdx(i)]
             if slotValue == 'NULL':
                 # Skip displaying NULL value in emails
@@ -139,8 +136,7 @@ class CEmail:
                 if not slotVal is None and len(slotVal) == 0:
                     break
             # Calculate remaining slots using utility function
-            punches_used, remaining_slots, total_slots = punchcards.countPunchcardSlots(remainingPunchcards[0])
-            remainingSlots = remaining_slots
+            _, remainingSlots, _ = punchcards.countPunchcardSlots(remainingPunchcards[0])
             body += "Your previous punchcard (purchased on " + remainingPunchcards[0][3] + ") has " + str(remainingSlots) + " slots remaining. We will finish it up first so you won't lose any plays.\n"  
         body += "\nThanks for supporting Underwater Hockey.  We'll see you on the bottom.\n"
         return subject,body 
@@ -188,29 +184,6 @@ class CEmail:
     def sendEmail(self, toAddress, subject, message):
   
         # TEMPORARILY DISABLED FOR TESTING
-        # Create the email
-        #msg = EmailMessage()
-        #msg['Subject'] = subject
-        #msg['From'] = self.info.getValue("club_email")
-        #msg['To'] = toAddress
-        #msg.set_content(message)
-
-        #with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        #    smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
-        #    smtp.send_message(msg)
-
-        # SENDGRID EMAIL DISCONTINUED
-        #mail = Mail(from_email, toAddress, subject, message)
-        ##mail_json = mail.get()
-        ##try:
-        #sg = SendGridAPIClient(self.SENDGRID_API_KEY)
-        #response = sg.send(mail)            
-        ##response = my_sg.client.mail.send.post(request_body=mail_json)
-        #pass
-        ##except:
-        ##    print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
-        ##    return False
-        
         print("-----------------------------------: Email successfully sent TO", toAddress)
         print("SUBJECT", subject)
         print("TEXT", message)

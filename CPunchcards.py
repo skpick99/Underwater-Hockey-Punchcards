@@ -147,24 +147,21 @@ class CPunchcards:
             
         punches_used = 0
         remaining_slots = 0
+        null_slots = 0
         
-        # Check if PlayDate11 slot has NULL value to determine card type
-        playdate11_value = pcRow[self.PLAY_DATE_INDICES[11]] if len(pcRow) > self.PLAY_DATE_INDICES[11] else ''
-        is_new_10_punch = playdate11_value == 'NULL'
-        
-        # For new 10-punch cards, only count first 10 slots
-        # For old 11-punch cards, count all 11 slots
-        max_slots = self.totalSlotCount - 1 if is_new_10_punch else self.totalSlotCount
-        total_slots = max_slots
-        
-        # Count punches used (non-empty values) and remaining slots
-        for slot_num in range(1, max_slots + 1):
+        # Count all slots: punches used, remaining (empty), and null slots
+        for slot_num in range(1, self.totalSlotCount + 1):
             if slot_num in self.PLAY_DATE_INDICES:
                 slot_value = pcRow[self.PLAY_DATE_INDICES[slot_num]]
-                if slot_value and slot_value != 'NULL':
+                if slot_value == 'NULL':
+                    null_slots += 1
+                elif slot_value:  # Has a date
                     punches_used += 1
-                else:
+                else:  # Empty/unused
                     remaining_slots += 1
+        
+        # Total usable slots = total - null slots
+        total_slots = self.totalSlotCount - null_slots
         
         return punches_used, remaining_slots, total_slots
 
@@ -258,10 +255,9 @@ class CPunchcards:
         row = self.punchcards[pcIdx]
         
         # Use utility function to determine max slots based on card type
-        punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
-        maxSlot = total_slots
+        _, _, total_slots = self.countPunchcardSlots(row)
         
-        for slot in range(maxSlot):
+        for slot in range(total_slots):
             if len(row[self.slotIdx(slot)]) == 0:
                 return pcIdx, slot, isAlt
 
@@ -282,19 +278,11 @@ class CPunchcards:
         self.punchcards[pcIdx][self.slotIdx(slot)] = date
         
         # Determine when to change status to "prev"
-        # Use utility function to determine final slot based on card type
-        row = self.punchcards[pcIdx]
-        punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
+        # Check if any punches remain after this punch
+        _, remaining_slots, _ = self.countPunchcardSlots(self.punchcards[pcIdx])
         
-        # Check if this is a new 10-punch card by looking at PlayDate11 slot
-        playdate11_value = row[self.PLAY_DATE_INDICES[11]] if len(row) > self.PLAY_DATE_INDICES[11] else ''
-        isNewCard = playdate11_value == 'NULL'
-        
-        # For new 10-punch cards: after 10th punch (slot 9)
-        # For old 11-punch cards: after 11th punch (slot 10)
-        finalSlot = total_slots - 2 if isNewCard else total_slots - 1  # 0-based indexing
-        
-        if slot == finalSlot and self.punchcards[pcIdx][self.P_STATUS] == "curr":
+        # If no punches remain, change status to "prev"
+        if remaining_slots == 0 and self.punchcards[pcIdx][self.P_STATUS] == "curr":
             self.punchcards[pcIdx][self.P_STATUS] = "prev"
         return True
     
