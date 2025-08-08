@@ -82,7 +82,7 @@ class CEmail:
             body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
         # Display punch slots, but handle NULL value for new 10-punch cards
         punches_used, remaining_slots, total_slots = punchcards.countPunchcardSlots(pcRow)
-        maxSlots = total_slots - 1 if punchcards.isNew10PunchCard(pcRow) else total_slots
+        maxSlots = total_slots
         for i in range(maxSlots):
             slotValue = pcRow[punchcards.slotIdx(i)]
             if slotValue == 'NULL':

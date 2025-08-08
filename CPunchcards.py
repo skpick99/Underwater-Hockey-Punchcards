@@ -148,8 +148,9 @@ class CPunchcards:
         punches_used = 0
         remaining_slots = 0
         
-        # Determine if this is a new 10-punch card
-        is_new_10_punch = self.isNew10PunchCard(pcRow)
+        # Check if PlayDate11 slot has NULL value to determine card type
+        playdate11_value = pcRow[self.PLAY_DATE_INDICES[11]] if len(pcRow) > self.PLAY_DATE_INDICES[11] else ''
+        is_new_10_punch = playdate11_value == 'NULL'
         
         # For new 10-punch cards, only count first 10 slots
         # For old 11-punch cards, count all 11 slots
@@ -167,13 +168,7 @@ class CPunchcards:
         
         return punches_used, remaining_slots, total_slots
 
-    #-------------------------------------------------------------------------------
-    def isNew10PunchCard(self, pcRow):
-        """Check if this is a new 10-punch card (has NULL value in PlayDate11 slot)"""
-        if pcRow is None or len(pcRow) <= self.PLAY_DATE_INDICES[11]:
-            return False
-        playDate11Value = pcRow[self.PLAY_DATE_INDICES[11]]  # PlayDate11 column
-        return playDate11Value == 'NULL'
+
 
     #-------------------------------------------------------------------------------    
     def getPaymentCard(self, player=''):
@@ -264,7 +259,7 @@ class CPunchcards:
         
         # Use utility function to determine max slots based on card type
         punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
-        maxSlot = total_slots - 1 if self.isNew10PunchCard(row) else total_slots
+        maxSlot = total_slots
         
         for slot in range(maxSlot):
             if len(row[self.slotIdx(slot)]) == 0:
@@ -290,7 +285,10 @@ class CPunchcards:
         # Use utility function to determine final slot based on card type
         row = self.punchcards[pcIdx]
         punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
-        isNewCard = self.isNew10PunchCard(row)
+        
+        # Check if this is a new 10-punch card by looking at PlayDate11 slot
+        playdate11_value = row[self.PLAY_DATE_INDICES[11]] if len(row) > self.PLAY_DATE_INDICES[11] else ''
+        isNewCard = playdate11_value == 'NULL'
         
         # For new 10-punch cards: after 10th punch (slot 9)
         # For old 11-punch cards: after 11th punch (slot 10)
