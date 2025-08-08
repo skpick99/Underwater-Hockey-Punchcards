@@ -26,7 +26,7 @@ class CPunchcards:
         self.punchcards = []
         self.punchcards = self.loadPunchcards()
         self.punchcardFileHeader = ["Hockey User ID", "Meetup name", "Alt ID", "Alt name", "Status", "PurchaseDate"] + \
-            [f"PlayDate{str(i).zfill(2)}" for i in range(1, self.totalSlotCount + 1)] + ["FollowUp"]
+            [f"PlayDate{str(i).zfill(2)}" for i in range(1, self.totalSlotCount + 1)]
         
         # Calculate column indices dynamically
         self._calculateColumnIndices()   
@@ -42,7 +42,6 @@ class CPunchcards:
     def _calculateColumnIndices(self):
         """Calculate column indices dynamically from the header"""
         self.PLAY_DATE_INDICES = {}
-        self.FOLLOWUP_INDEX = None
         
         for i, header in enumerate(self.punchcardFileHeader):
             if header.startswith("PlayDate"):
@@ -53,12 +52,8 @@ class CPunchcards:
                     num_str = header[len(playdate_prefix):]  # Get everything after "PlayDate"
                     num = int(num_str)  # This will handle "01", "02", etc.
                     self.PLAY_DATE_INDICES[num] = i
-            elif header == "FollowUp":
-                self.FOLLOWUP_INDEX = i
         
         # Verify we have all expected indices
-        if self.FOLLOWUP_INDEX is None:
-            raise ValueError("FollowUp column not found in header")
         if len(self.PLAY_DATE_INDICES) != self.totalSlotCount:
             raise ValueError(f"Expected {self.totalSlotCount} PlayDate columns, found {len(self.PLAY_DATE_INDICES)}")
     
@@ -118,7 +113,7 @@ class CPunchcards:
         print("----------------------------------")
         pc = self.getPunchcards(player, status)
         for row in pc:
-            print(' '.join(row[:18]))
+            print(' '.join(row[:len(self.punchcardFileHeader)]))
         print("")
         return
 
@@ -141,12 +136,44 @@ class CPunchcards:
         return self.firstPaySlot + idx
 
     #-------------------------------------------------------------------------------
+    def countPunchcardSlots(self, pcRow):
+        """Count punches used and remaining slots in a punchcard row
+        
+        Returns:
+            tuple: (punches_used, remaining_slots, total_slots)
+        """
+        if pcRow is None:
+            return 0, 0, 0
+            
+        punches_used = 0
+        remaining_slots = 0
+        
+        # Determine if this is a new 10-punch card
+        is_new_10_punch = self.isNew10PunchCard(pcRow)
+        
+        # For new 10-punch cards, only count first 10 slots
+        # For old 11-punch cards, count all 11 slots
+        max_slots = self.totalSlotCount - 1 if is_new_10_punch else self.totalSlotCount
+        total_slots = max_slots
+        
+        # Count punches used (non-empty values) and remaining slots
+        for slot_num in range(1, max_slots + 1):
+            if slot_num in self.PLAY_DATE_INDICES:
+                slot_value = pcRow[self.PLAY_DATE_INDICES[slot_num]]
+                if slot_value and slot_value != 'NULL':
+                    punches_used += 1
+                else:
+                    remaining_slots += 1
+        
+        return punches_used, remaining_slots, total_slots
+
+    #-------------------------------------------------------------------------------
     def isNew10PunchCard(self, pcRow):
-        """Check if this is a new 10-punch card (has dummy value in PlayDate11 slot)"""
+        """Check if this is a new 10-punch card (has NULL value in PlayDate11 slot)"""
         if pcRow is None or len(pcRow) <= self.PLAY_DATE_INDICES[11]:
             return False
         playDate11Value = pcRow[self.PLAY_DATE_INDICES[11]]  # PlayDate11 column
-        return playDate11Value == 'DUMMY'
+        return playDate11Value == 'NULL'
 
     #-------------------------------------------------------------------------------    
     def getPaymentCard(self, player=''):
@@ -203,8 +230,8 @@ class CPunchcards:
             newrow[self.P_HOCKEYUSERID] = player
             newrow[self.P_MEETUPNAME] = roster.getMeetupName(player)
             newrow[self.P_STATUS] = "pastdue"
-            # New cards (including past due) are 10-punch cards with dummy value in PlayDate11 slot
-            newrow[self.PLAY_DATE_INDICES[11]] = 'DUMMY'  # Put DUMMY in PlayDate11 slot
+            # New cards (including past due) are 10-punch cards with NULL value in PlayDate11 slot
+            newrow[self.PLAY_DATE_INDICES[11]] = 'NULL'  # Put NULL in PlayDate11 slot
             self.punchcards.append(newrow)
             
         # get player's past due card, which should always exist at this point.  (If not, it would have been added above.)
@@ -235,9 +262,9 @@ class CPunchcards:
         # find the first unused punch on the punchcard
         row = self.punchcards[pcIdx]
         
-        # For new 10-punch cards, skip the last slot (slot 10)
-        # For old 11-punch cards, use all slots (0-10)
-        maxSlot = self.totalSlotCount - 1 if self.isNew10PunchCard(row) else self.totalSlotCount
+        # Use utility function to determine max slots based on card type
+        punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
+        maxSlot = total_slots - 1 if self.isNew10PunchCard(row) else total_slots
         
         for slot in range(maxSlot):
             if len(row[self.slotIdx(slot)]) == 0:
@@ -260,11 +287,14 @@ class CPunchcards:
         self.punchcards[pcIdx][self.slotIdx(slot)] = date
         
         # Determine when to change status to "prev"
+        # Use utility function to determine final slot based on card type
+        row = self.punchcards[pcIdx]
+        punches_used, remaining_slots, total_slots = self.countPunchcardSlots(row)
+        isNewCard = self.isNew10PunchCard(row)
+        
         # For new 10-punch cards: after 10th punch (slot 9)
         # For old 11-punch cards: after 11th punch (slot 10)
-        row = self.punchcards[pcIdx]
-        isNewCard = self.isNew10PunchCard(row)
-        finalSlot = 9 if isNewCard else 10  # slot 9 = 10th punch, slot 10 = 11th punch
+        finalSlot = total_slots - 2 if isNewCard else total_slots - 1  # 0-based indexing
         
         if slot == finalSlot and self.punchcards[pcIdx][self.P_STATUS] == "curr":
             self.punchcards[pcIdx][self.P_STATUS] = "prev"
@@ -346,13 +376,13 @@ class CPunchcards:
             email.sendEmail(playerEmail, subject, body)                    
             
             # add the punchcard
-            # New cards are 10-punch cards with dummy value in PlayDate11 slot
+            # New cards are 10-punch cards with NULL value in PlayDate11 slot
             newPunchcard = self.createEmptyRow()
             newPunchcard[self.P_HOCKEYUSERID] = playerHockeyID
             newPunchcard[self.P_MEETUPNAME] = playerMeetupName
             newPunchcard[self.P_STATUS] = "curr"
             newPunchcard[self.P_PURCHASEDATE] = currentDate
-            newPunchcard[self.PLAY_DATE_INDICES[11]] = 'DUMMY'  # Put DUMMY in PlayDate11 slot
+            newPunchcard[self.PLAY_DATE_INDICES[11]] = 'NULL'  # Put NULL in PlayDate11 slot
             self.punchcards.append(newPunchcard)            
         return
     
@@ -454,11 +484,9 @@ class CPunchcards:
                 pcIdx,slot,isAlt = self.getNextFreePaymentSlot(player=playerHockeyID)
                 paid = False
                 if slot >= 0:
-                    # Calculate remaining punches, accounting for dummy value in new 10-punch cards
-                    if self.isNew10PunchCard(self.punchcards[pcIdx]):
-                        remainingPunches = 10 - (slot + 1)  # For new 10-punch cards, slot is 0-based
-                    else:
-                        remainingPunches = 11 - (slot + 1)  # For old 11-punch cards, slot is 0-based
+                    # Calculate remaining punches using utility function
+                    punches_used, remaining_slots, total_slots = self.countPunchcardSlots(self.punchcards[pcIdx])
+                    remainingPunches = remaining_slots
                     print(f"{playerHockeyID} {playerMeetupName} >>> Payment {slot+1} ({remainingPunches} left on this card)")
                     paid = self.makePayment(player=playerHockeyID, date=punchDate)
                     # when only charging a half-game (10 stars), charge them a punch then give them 10 stars so only charging them half a game
