@@ -311,9 +311,9 @@ class CGameDay:
         if slot >= 0:
             # Calculate remaining punches, accounting for dummy value in new 10-punch cards
             if punchcards.isNew10PunchCard(punchcards.punchcards[pcIdx]):
-                remainingPunches = 10 - slot  # For new 10-punch cards
+                remainingPunches = 10 - (slot + 1)  # For new 10-punch cards, slot is 0-based
             else:
-                remainingPunches = 11 - slot  # For old 11-punch cards
+                remainingPunches = 11 - (slot + 1)  # For old 11-punch cards, slot is 0-based
             print(hockeyID, playerInfo[self.M_MEETUPNAME], ">>> Payment", slot+1, " (", remainingPunches, "left on this card )")
             paid = punchcards.makePaymentBySlot(pcIdx, slot, self.date)
         if paid:

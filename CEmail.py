@@ -53,10 +53,10 @@ class CEmail:
         # Calculate remaining punches, accounting for dummy value in new 10-punch cards
         if punchcards.isNew10PunchCard(pcRow):
             # For new 10-punch cards, max is 10 punches
-            remainingPunches = 10 - pcIdx - 1
+            remainingPunches = 10 - (pcIdx + 1)  # pcIdx is 0-based, so add 1 for punches used
         else:
             # For old 11-punch cards, max is 11 punches
-            remainingPunches = punchcards.totalSlotCount - pcIdx - 1
+            remainingPunches = punchcards.totalSlotCount - (pcIdx + 1)  # pcIdx is 0-based, so add 1 for punches used
         boughtNextCard = False
         if remainingPunches <= 2:
             if punchcards.getPunchcardCount(playerID) > 1:
@@ -191,16 +191,17 @@ class CEmail:
     #-------------------------------------------------------------------------------    
     def sendEmail(self, toAddress, subject, message):
   
+        # TEMPORARILY DISABLED FOR TESTING
         # Create the email
-        msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = self.info.getValue("club_email")
-        msg['To'] = toAddress
-        msg.set_content(message)
+        #msg = EmailMessage()
+        #msg['Subject'] = subject
+        #msg['From'] = self.info.getValue("club_email")
+        #msg['To'] = toAddress
+        #msg.set_content(message)
 
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
-            smtp.send_message(msg)
+        #with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        #    smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
+        #    smtp.send_message(msg)
 
         # SENDGRID EMAIL DISCONTINUED
         #mail = Mail(from_email, toAddress, subject, message)

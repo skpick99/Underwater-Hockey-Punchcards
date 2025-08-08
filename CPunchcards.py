@@ -115,11 +115,11 @@ class CPunchcards:
 
     #-------------------------------------------------------------------------------
     def isNew10PunchCard(self, pcRow):
-        """Check if this is a new 10-punch card (has dummy value in last slot)"""
-        if pcRow is None or len(pcRow) <= self.slotIdx(self.totalSlotCount - 1):
+        """Check if this is a new 10-punch card (has dummy value in FollowUp column)"""
+        if pcRow is None or len(pcRow) < 18:
             return False
-        lastSlotValue = pcRow[self.slotIdx(self.totalSlotCount - 1)]
-        return lastSlotValue == 'DUMMY'
+        followUpValue = pcRow[17]  # FollowUp column is at index 17
+        return followUpValue == 'DUMMY'
 
     #-------------------------------------------------------------------------------    
     def getPaymentCard(self, player=''):
@@ -422,9 +422,9 @@ class CPunchcards:
                 if slot >= 0:
                     # Calculate remaining punches, accounting for dummy value in new 10-punch cards
                     if self.isNew10PunchCard(self.punchcards[pcIdx]):
-                        remainingPunches = 10 - slot  # For new 10-punch cards
+                        remainingPunches = 10 - (slot + 1)  # For new 10-punch cards, slot is 0-based
                     else:
-                        remainingPunches = 11 - slot  # For old 11-punch cards
+                        remainingPunches = 11 - (slot + 1)  # For old 11-punch cards, slot is 0-based
                     print(f"{playerHockeyID} {playerMeetupName} >>> Payment {slot+1} ({remainingPunches} left on this card)")
                     paid = self.makePayment(player=playerHockeyID, date=punchDate)
                     # when only charging a half-game (10 stars), charge them a punch then give them 10 stars so only charging them half a game
