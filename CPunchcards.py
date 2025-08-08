@@ -203,6 +203,8 @@ class CPunchcards:
             newrow[self.P_HOCKEYUSERID] = player
             newrow[self.P_MEETUPNAME] = roster.getMeetupName(player)
             newrow[self.P_STATUS] = "pastdue"
+            # New cards (including past due) are 10-punch cards with dummy value in PlayDate11 slot
+            newrow[self.PLAY_DATE_INDICES[11]] = 'DUMMY'  # Put DUMMY in PlayDate11 slot
             self.punchcards.append(newrow)
             
         # get player's past due card, which should always exist at this point.  (If not, it would have been added above.)
