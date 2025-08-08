@@ -84,8 +84,9 @@ class CEmail:
         body += "You used punch number " + str(pcIdx+1) + " on the punchcard you purchased on " + pcRow[punchcards.P_PURCHASEDATE] + "\n"
         if gameStars != 20:
             body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
-        # Display punch slots, but handle dummy value in last slot for new 10-punch cards
-        for i in range(punchcards.totalSlotCount):
+        # Display punch slots, but handle dummy value for new 10-punch cards
+        maxSlots = 10 if punchcards.isNew10PunchCard(pcRow) else punchcards.totalSlotCount
+        for i in range(maxSlots):
             slotValue = pcRow[punchcards.slotIdx(i)]
             if slotValue == 'DUMMY':
                 # Skip displaying dummy value in emails
@@ -191,16 +192,17 @@ class CEmail:
     #-------------------------------------------------------------------------------    
     def sendEmail(self, toAddress, subject, message):
   
+        # TEMPORARILY DISABLED FOR TESTING
         # Create the email
-        msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = self.info.getValue("club_email")
-        msg['To'] = toAddress
-        msg.set_content(message)
+        #msg = EmailMessage()
+        #msg['Subject'] = subject
+        #msg['From'] = self.info.getValue("club_email")
+        #msg['To'] = toAddress
+        #msg.set_content(message)
 
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
-            smtp.send_message(msg)
+        #with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        #    smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
+        #    smtp.send_message(msg)
 
         # SENDGRID EMAIL DISCONTINUED
         #mail = Mail(from_email, toAddress, subject, message)

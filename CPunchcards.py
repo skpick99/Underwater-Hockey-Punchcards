@@ -26,7 +26,10 @@ class CPunchcards:
         self.punchcards = []
         self.punchcards = self.loadPunchcards()
         self.punchcardFileHeader = ["Hockey User ID", "Meetup name", "Alt ID", "Alt name", "Status", "PurchaseDate"] + \
-            [f"PlayDate{str(i).zfill(2)}" for i in range(1, self.totalSlotCount + 1)] + ["FollowUp"]   
+            [f"PlayDate{str(i).zfill(2)}" for i in range(1, self.totalSlotCount + 1)] + ["FollowUp"]
+        
+        # Calculate column indices dynamically
+        self._calculateColumnIndices()   
         
     def __enter__(self):
         return self
@@ -34,6 +37,30 @@ class CPunchcards:
     def __exit__(self, exc_type, exc_value, traceback):
         # close, deallocate, etc
         pass
+    
+    #-------------------------------------------------------------------------------
+    def _calculateColumnIndices(self):
+        """Calculate column indices dynamically from the header"""
+        self.PLAY_DATE_INDICES = {}
+        self.FOLLOWUP_INDEX = None
+        
+        for i, header in enumerate(self.punchcardFileHeader):
+            if header.startswith("PlayDate"):
+                # Extract the number from PlayDateXX (e.g., "PlayDate01" -> 1)
+                # Find where "PlayDate" ends and extract the number
+                playdate_prefix = "PlayDate"
+                if header.startswith(playdate_prefix):
+                    num_str = header[len(playdate_prefix):]  # Get everything after "PlayDate"
+                    num = int(num_str)  # This will handle "01", "02", etc.
+                    self.PLAY_DATE_INDICES[num] = i
+            elif header == "FollowUp":
+                self.FOLLOWUP_INDEX = i
+        
+        # Verify we have all expected indices
+        if self.FOLLOWUP_INDEX is None:
+            raise ValueError("FollowUp column not found in header")
+        if len(self.PLAY_DATE_INDICES) != self.totalSlotCount:
+            raise ValueError(f"Expected {self.totalSlotCount} PlayDate columns, found {len(self.PLAY_DATE_INDICES)}")
     
     #-------------------------------------------------------------------------------    
     def loadPunchcards(self, includeHistory = False):
@@ -115,11 +142,11 @@ class CPunchcards:
 
     #-------------------------------------------------------------------------------
     def isNew10PunchCard(self, pcRow):
-        """Check if this is a new 10-punch card (has dummy value in FollowUp column)"""
-        if pcRow is None or len(pcRow) < 18:
+        """Check if this is a new 10-punch card (has dummy value in PlayDate11 slot)"""
+        if pcRow is None or len(pcRow) <= self.PLAY_DATE_INDICES[11]:
             return False
-        followUpValue = pcRow[17]  # FollowUp column is at index 17
-        return followUpValue == 'DUMMY'
+        playDate11Value = pcRow[self.PLAY_DATE_INDICES[11]]  # PlayDate11 column
+        return playDate11Value == 'DUMMY'
 
     #-------------------------------------------------------------------------------    
     def getPaymentCard(self, player=''):
@@ -317,8 +344,13 @@ class CPunchcards:
             email.sendEmail(playerEmail, subject, body)                    
             
             # add the punchcard
-            # New cards are 10-punch cards with dummy value in last slot
-            newPunchcard = [playerHockeyID, playerMeetupName, '', '', "curr", currentDate, '', '', '', '', '', '', '', '', '', '', '', 'DUMMY']
+            # New cards are 10-punch cards with dummy value in PlayDate11 slot
+            newPunchcard = self.createEmptyRow()
+            newPunchcard[self.P_HOCKEYUSERID] = playerHockeyID
+            newPunchcard[self.P_MEETUPNAME] = playerMeetupName
+            newPunchcard[self.P_STATUS] = "curr"
+            newPunchcard[self.P_PURCHASEDATE] = currentDate
+            newPunchcard[self.PLAY_DATE_INDICES[11]] = 'DUMMY'  # Put DUMMY in PlayDate11 slot
             self.punchcards.append(newPunchcard)            
         return
     
