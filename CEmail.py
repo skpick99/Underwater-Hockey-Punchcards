@@ -191,17 +191,16 @@ class CEmail:
     #-------------------------------------------------------------------------------    
     def sendEmail(self, toAddress, subject, message):
   
-        # TEMPORARILY DISABLED FOR TESTING
         # Create the email
-        #msg = EmailMessage()
-        #msg['Subject'] = subject
-        #msg['From'] = self.info.getValue("club_email")
-        #msg['To'] = toAddress
-        #msg.set_content(message)
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = self.info.getValue("club_email")
+        msg['To'] = toAddress
+        msg.set_content(message)
 
-        #with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        #    smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
-        #    smtp.send_message(msg)
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
+            smtp.send_message(msg)
 
         # SENDGRID EMAIL DISCONTINUED
         #mail = Mail(from_email, toAddress, subject, message)
