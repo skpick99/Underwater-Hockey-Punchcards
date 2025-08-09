@@ -276,12 +276,9 @@ class CPunchcards:
             return False
         
         self.punchcards[pcIdx][self.slotIdx(slot)] = date
-        
-        # Determine when to change status to "prev"
         # Check if any punches remain after this punch
-        _, remaining_slots, _ = self.countPunchcardSlots(self.punchcards[pcIdx])
-        
         # If no punches remain, change status to "prev"
+        _, remaining_slots, _ = self.countPunchcardSlots(self.punchcards[pcIdx])
         if remaining_slots == 0 and self.punchcards[pcIdx][self.P_STATUS] == "curr":
             self.punchcards[pcIdx][self.P_STATUS] = "prev"
         return True

@@ -309,7 +309,7 @@ class CGameDay:
         pcIdx,slot,isAlt = punchcards.getNextFreePaymentSlot(player=hockeyID)
         paid = False
         if slot >= 0:
-            punches_used, remainingPunches, total_slots = punchcards.countPunchcardSlots(punchcards.punchcards[pcIdx])
+            _, remainingPunches, _ = punchcards.countPunchcardSlots(punchcards.punchcards[pcIdx])
             print(hockeyID, playerInfo[self.M_MEETUPNAME], ">>> Payment", slot+1, " (", remainingPunches, "left on this card )")
             paid = punchcards.makePaymentBySlot(pcIdx, slot, self.date)
         if paid:
