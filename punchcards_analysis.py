@@ -5,26 +5,20 @@ import sys
 from typing import List, Tuple
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+
+# Bokeh for interactive plots
+from bokeh.plotting import figure, output_file, save
+from bokeh.models import HoverTool
 
 def smart_read_csv(path: str) -> pd.DataFrame:
-    """
-    Read a CSV/TSV with unknown delimiter/quoting via Python engine and separator inference.
-    """
     try:
         df = pd.read_csv(path, sep=None, engine="python", dtype=str, keep_default_na=False)
         return df
-    except Exception as e:
-        # Fallback to comma
+    except Exception:
         df = pd.read_csv(path, dtype=str, keep_default_na=False)
         return df
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Normalize column names to a shared schema.
-    Recognize user id, meetup name, status, purchase date, playdateNN columns, followup.
-    """
-    # Strip whitespace and quotes from headers
     df = df.copy()
     df.columns = [c.strip().strip('"').strip("'") for c in df.columns]
 
@@ -33,12 +27,10 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if user_cols:
         df = df.rename(columns={user_cols[0]: "UserID"})
     else:
-        # Try heuristic: column containing "user" and "id"
         candidates = [c for c in df.columns if ("user" in c.lower() and "id" in c.lower())]
         if candidates:
             df = df.rename(columns={candidates[0]: "UserID"})
         else:
-            # If absent, synthesize from row index
             df["UserID"] = df.index.astype(str)
 
     # Meetup name
@@ -62,19 +54,12 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         df = df.rename(columns={fu_cols[0]: "FollowUp"})
 
     # Standardize playdate columns
-    play_cols = []
-    for c in df.columns:
+    for c in list(df.columns):
         lc = c.lower()
         if lc.startswith("playdate") and lc.replace("playdate", "").isdigit():
-            # normalize to PlayDateNN
             suffix = lc.replace("playdate", "")
             newc = f"PlayDate{int(suffix):02d}"
             df = df.rename(columns={c: newc})
-            play_cols.append(newc)
-    if not play_cols:
-        # try any column exactly 'PlayDate01' style already present
-        play_cols = [c for c in df.columns if c.lower().startswith("playdate")]
-    play_cols = sorted(play_cols)
 
     # Clean strings
     for col in df.columns:
@@ -84,88 +69,70 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def parse_date_yyyymmdd(val: str):
-    """
-    Parse yyyymmdd as datetime; coerce invalid to NaT.
-    Accept numeric-like strings; ignore blanks.
-    """
     if val is None:
         return pd.NaT
     s = str(val).strip()
     if s == "" or s.lower() == "nan":
         return pd.NaT
-    # Some rows might be floats from CSV; drop .0
     if s.endswith(".0"):
         s = s[:-2]
-    # Only accept pure digits length 8
     if len(s) == 8 and s.isdigit():
-        # basic sanity on year
         yr = int(s[:4])
         if 1900 <= yr <= 2100:
             try:
                 return pd.to_datetime(s, format="%Y%m%d", errors="coerce")
             except Exception:
                 return pd.NaT
-    # Try MM/DD/YYYY as a fallback (e.g., PurchaseDate might be like 03/19/2022)
+    # Fallback for other formats (e.g., MM/DD/YYYY)
     try:
         return pd.to_datetime(s, format="%m/%d/%Y", errors="coerce")
     except Exception:
         return pd.NaT
 
 def build_attendance_long(df_list: List[pd.DataFrame]) -> pd.DataFrame:
-    """
-    From input dataframes, extract (UserID, Date) rows from PlayDateNN columns.
-    Returns a dataframe with columns: UserID, Date (datetime64[ns]).
-    """
     frames = []
     for df in df_list:
         df_norm = normalize_columns(df)
-        # Identify playdate columns
         play_cols = [c for c in df_norm.columns if c.lower().startswith("playdate")]
         if not play_cols:
             continue
-        # Melt to long
+
+        id_vars = [c for c in ["UserID", "MeetupName", "Status", "PurchaseDate"] if c in df_norm.columns]
         long = df_norm.melt(
-            id_vars=[c for c in ["UserID", "MeetupName", "Status", "PurchaseDate"] if c in df_norm.columns],
-            value_vars=play_cols,
+            id_vars=id_vars,
+            value_vars=sorted(play_cols),
             var_name="PlaySlot",
             value_name="PlayDateRaw"
         )
-        # Clean and parse dates
         long["Date"] = long["PlayDateRaw"].apply(parse_date_yyyymmdd)
         long = long.dropna(subset=["Date"])
-        # Keep only user + date (others optional)
-        keep_cols = ["UserID", "Date"]
-        if "MeetupName" in long.columns: keep_cols.append("MeetupName")
-        if "Status" in long.columns: keep_cols.append("Status")
-        frames.append(long[keep_cols].copy())
+
+        # Normalize identifiers
+        long["UserID"] = long.get("UserID", "").astype(str).str.strip()
+        long["MeetupName"] = long.get("MeetupName", "").astype(str).str.strip()
+
+        frames.append(long[["UserID", "MeetupName", "Date"]].copy())
+
     if not frames:
-        return pd.DataFrame(columns=["UserID", "Date"])
+        return pd.DataFrame(columns=["UserID", "MeetupName", "Date"])
+
     out = pd.concat(frames, ignore_index=True)
-    # Normalize UserID string
-    out["UserID"] = out["UserID"].astype(str).str.strip()
+    out["Date"] = pd.to_datetime(out["Date"]).dt.normalize()
+    # Prefer MeetupName if present, else fallback to UserID
+    out["Person"] = np.where(out["MeetupName"].fillna("").str.len() > 0, out["MeetupName"], out["UserID"])
+    # Drop duplicates: one person counted once per date
+    out = out.drop_duplicates(subset=["Person", "Date"])
     return out
 
 def compute_sessions_and_attendance(att: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    From attendance (UserID, Date), compute:
-      - sessions_df: one row per session date with list of attendees and weekday (0=Mon,...6=Sun)
-      - attendance_df: one row per (Date, UserID) unique attendance
-    """
     if att.empty:
-        return pd.DataFrame(columns=["Date","Weekday","AttendeeCount"]), pd.DataFrame(columns=["Date","UserID","Weekday"])
+        return pd.DataFrame(columns=["Date","Weekday","AttendeeCount"]), pd.DataFrame(columns=["Date","Person","Weekday"])
 
-    # Ensure datetime and drop duplicates (a user counted once per date)
-    att = att.copy()
-    att["Date"] = pd.to_datetime(att["Date"]).dt.normalize()
-    att = att.drop_duplicates(subset=["UserID", "Date"])
-
-    # Build session-level info
-    # Count attendees per date
-    cnt = att.groupby("Date")["UserID"].nunique().reset_index(name="AttendeeCount")
+    # Sessions per date
+    cnt = att.groupby("Date")["Person"].nunique().reset_index(name="AttendeeCount")
     cnt["Weekday"] = cnt["Date"].dt.weekday  # 0=Mon ... 6=Sun
     sessions_df = cnt.sort_values("Date").reset_index(drop=True)
 
-    # Attendance with weekday
     attendance_df = att.copy()
     attendance_df["Weekday"] = attendance_df["Date"].dt.weekday
     return sessions_df, attendance_df
@@ -174,59 +141,61 @@ def weekday_name(idx: int) -> str:
     return ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][idx]
 
 def number_of_practices_per_weekday(sessions_df: pd.DataFrame) -> pd.Series:
-    """
-    Count distinct session dates per weekday.
-    """
     if sessions_df.empty:
         return pd.Series(dtype=int)
     counts = sessions_df.groupby("Weekday")["Date"].nunique()
     counts.index = counts.index.map(weekday_name)
     return counts
 
-def fractions_by_user_per_weekday(sessions_df: pd.DataFrame, attendance_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    For each weekday, fraction of sessions each user attended:
-      frac(user, d) = (# distinct dates user attended on weekday d) / (total sessions on weekday d)
-    Returns a DataFrame indexed by UserID with columns Mon..Sun (missing weekdays kept if no sessions? Skip days without sessions).
-    """
+def fractions_by_person_per_weekday(sessions_df: pd.DataFrame, attendance_df: pd.DataFrame) -> pd.DataFrame:
     if sessions_df.empty or attendance_df.empty:
-        cols = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+        cols = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun","Total"]
         return pd.DataFrame(columns=cols)
 
-    # total sessions per weekday
+    # totals per weekday (denominator)
     total_sessions = sessions_df.groupby("Weekday")["Date"].nunique()
-    # attended counts per user and weekday
-    att_counts = attendance_df.groupby(["UserID", "Weekday"])["Date"].nunique().unstack(fill_value=0)
-    # Align columns and divide
-    att_counts = att_counts.reindex(columns=sorted(total_sessions.index), fill_value=0)
-    frac = att_counts.div(total_sessions, axis=1)
-    # Rename columns to names
+
+    # numerators per person/weekday
+    per_person_counts = attendance_df.groupby(["Person", "Weekday"])["Date"].nunique().unstack(fill_value=0)
+
+    # Align/limit to weekdays that actually have sessions
+    per_person_counts = per_person_counts.reindex(columns=sorted(total_sessions.index), fill_value=0)
+
+    # Fractions by weekday
+    frac = per_person_counts.div(total_sessions, axis=1)
+
+    # Rename weekday columns
     frac.columns = [weekday_name(i) for i in frac.columns]
-    # Drop weekdays with zero sessions entirely
-    nonzero_cols = []
-    for i, total in total_sessions.items():
-        if total > 0:
-            nonzero_cols.append(weekday_name(i))
-    frac = frac.reindex(columns=nonzero_cols)
-    # Sort users by overall attendance fraction sum (desc) for readability
-    frac["__sum__"] = frac.sum(axis=1)
-    frac = frac.sort_values("__sum__", ascending=False).drop(columns="__sum__")
+
+    # Drop weekdays with zero sessions entirely (shouldn't exist after alignment, but keep safe)
+    nonzero_wd = [weekday_name(i) for i, total in total_sessions.items() if total > 0]
+    frac = frac.reindex(columns=nonzero_wd)
+
+    # Add Total fraction: (sum of numerators) / (sum of denominators)
+    total_denominator = total_sessions.sum()
+    total_numerators = per_person_counts.sum(axis=1)  # total sessions attended by person
+    frac["Total"] = (total_numerators / total_denominator).fillna(0.0)
+
+    # Sort by Total desc then by name
+    frac = frac.sort_values(["Total"], ascending=[False])
+
+    # Reset index to have a named column
+    frac = frac.reset_index().rename(columns={"Person": "Meetup name"})
+
     return frac
 
-def make_surplus_plots(sessions_df: pd.DataFrame, outdir: str, revenue_per_person: float = 10.0, pool_cost: float = 105.0) -> pd.DataFrame:
-    """
-    For each weekday with at least one session, compute and plot cumulative surplus:
-      y[n] = y[n-1] + (attendees[n] * revenue_per_person) - pool_cost
-    Save a PNG per weekday to outdir, and return a long DataFrame with all points.
-    """
+def make_bokeh_surplus_plots(sessions_df: pd.DataFrame, outdir: str, revenue_per_person: float = 10.0, pool_cost: float = 105.0) -> pd.DataFrame:
     if sessions_df.empty:
-        return pd.DataFrame(columns=["WeekdayName","Date","Attendees","Delta","Surplus"])
+        return pd.DataFrame(columns=["WeekdayName","Date","Attendees","Delta","Deficit"])
 
     os.makedirs(outdir, exist_ok=True)
     all_rows = []
+
     for wd, grp in sessions_df.groupby("Weekday", sort=True):
         grp = grp.sort_values("Date").reset_index(drop=True)
-        surplus = 0.0
+
+        # Compute cumulative "deficit" (same running value as before, typically negative)
+        deficit = 0.0
         dates = []
         ys = []
         deltas = []
@@ -234,38 +203,56 @@ def make_surplus_plots(sessions_df: pd.DataFrame, outdir: str, revenue_per_perso
         for _, row in grp.iterrows():
             p = row["AttendeeCount"]
             delta = p * revenue_per_person - pool_cost
-            surplus += delta
+            deficit += delta
             dates.append(row["Date"])
-            ys.append(surplus)
+            ys.append(deficit)
             deltas.append(delta)
             attendees_list.append(p)
 
-        # Plot
-        plt.figure()
-        plt.plot(dates, ys, marker="o")
-        plt.title(f"Money Surplus over Time — {weekday_name(wd)}")
-        plt.xlabel("Date")
-        plt.ylabel("Surplus ($)")
-        plt.grid(True, which="both", axis="both")
-        fname = os.path.join(outdir, f"surplus_{weekday_name(wd)}.png")
-        plt.tight_layout()
-        plt.savefig(fname, dpi=150)
-        plt.close()
+        # Bokeh plot
+        wkname = weekday_name(wd)
+        pfig = figure(
+            x_axis_type="datetime",
+            title=f"Money Deficit over Time — {wkname}",
+            width=900,
+            height=400,
+            tools="pan,wheel_zoom,box_zoom,reset,save,hover",
+            active_scroll="wheel_zoom"
+        )
+        pfig.yaxis.axis_label = "Deficit ($)"
+        pfig.xaxis.axis_label = "Date"
 
-        for d, p, delta, yv in zip(dates, attendees_list, deltas, ys):
+        source_data = dict(date=dates, y=ys, attendees=attendees_list, delta=deltas)
+        pfig.line(x="date", y="y", source=source_data)
+        pfig.circle(x="date", y="y", source=source_data, size=6)
+
+        hover = pfig.select_one(HoverTool)
+        hover.tooltips = [
+            ("Date", "@date{%F}"),
+            ("Deficit", "@y{$0,0.00}"),
+            ("Attendees", "@attendees"),
+            ("Delta", "@delta{$0,0.00}"),
+        ]
+        hover.formatters = {"@date": "datetime"}
+
+        html_path = os.path.join(outdir, f"surplus_{wkname}.html")
+        output_file(html_path, title=f"Deficit — {wkname}")
+        save(pfig)
+
+        for d, a, delta, yv in zip(dates, attendees_list, deltas, ys):
             all_rows.append({
                 "Weekday": wd,
-                "WeekdayName": weekday_name(wd),
+                "WeekdayName": wkname,
                 "Date": d,
-                "Attendees": p,
+                "Attendees": a,
                 "Delta": delta,
-                "Surplus": yv,
+                "Deficit": yv,
             })
 
     return pd.DataFrame(all_rows)
 
 def main():
-    parser = argparse.ArgumentParser(description="Analyze punchcard attendance and finances by weekday.")
+    parser = argparse.ArgumentParser(description="Analyze punchcard attendance and finances by weekday (interactive Bokeh plots).")
     parser.add_argument("--punchcards", required=True, help="Path to punchcards.csv")
     parser.add_argument("--history", required=True, help="Path to punchcards_history.csv")
     parser.add_argument("--outdir", default="analysis_output", help="Directory to save outputs")
@@ -273,50 +260,44 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
 
-    # Read inputs
     df1 = smart_read_csv(args.punchcards)
     df2 = smart_read_csv(args.history)
 
-    # Build attendance
     attendance = build_attendance_long([df1, df2])
-
     if attendance.empty:
         print("No attendance dates found in the provided files.")
         sys.exit(0)
 
-    # Compute sessions and attendance
     sessions_df, attendance_df = compute_sessions_and_attendance(attendance)
 
-    # 1) Number of practices per weekday (distinct dates)
+    # 1) Number of practices per weekday
     weekday_counts = number_of_practices_per_weekday(sessions_df).sort_index()
 
-    # 2) Fractions per user per weekday
-    fractions_df = fractions_by_user_per_weekday(sessions_df, attendance_df)
+    # 2) Fractions per person (Meetup name preferred) per weekday + Total
+    fractions_df = fractions_by_person_per_weekday(sessions_df, attendance_df)
 
-    # 3) Surplus plots & data
-    surplus_df = make_surplus_plots(sessions_df, args.outdir, revenue_per_person=10.0, pool_cost=105.0)
+    # 3) Interactive Bokeh deficit plots & data
+    deficit_df = make_bokeh_surplus_plots(sessions_df, args.outdir, revenue_per_person=10.0, pool_cost=105.0)
 
     # Save outputs
     weekday_counts.to_csv(os.path.join(args.outdir, "weekday_practice_counts.csv"), header=["Count"])
-    fractions_df.to_csv(os.path.join(args.outdir, "fractions_by_user_per_weekday.csv"))
-    surplus_df.to_csv(os.path.join(args.outdir, "surplus_timeseries_by_weekday.csv"), index=False)
+    fractions_df.to_csv(os.path.join(args.outdir, "fractions_by_weekday_meetupname.csv"), index=False)
+    deficit_df.to_csv(os.path.join(args.outdir, "deficit_timeseries_by_weekday.csv"), index=False)
 
-    # Also dump a human-readable summary
     with open(os.path.join(args.outdir, "README.txt"), "w") as f:
         f.write("Outputs generated:\n")
         f.write("- weekday_practice_counts.csv: number of distinct practice dates per weekday (Mon..Sun)\n")
-        f.write("- fractions_by_user_per_weekday.csv: for each weekday, fraction of sessions attended by each user\n")
-        f.write("- surplus_timeseries_by_weekday.csv: per-weekday time series with attendees, delta, cumulative surplus\n")
-        f.write("- surplus_*.png: plots of surplus vs date for each weekday that had at least one session\n")
+        f.write("- fractions_by_weekday_meetupname.csv: per-weekday attendance fraction by Meetup name, plus Total fraction\n")
+        f.write("- deficit_timeseries_by_weekday.csv: per-weekday time series with attendees, delta, cumulative deficit\n")
+        f.write("- surplus_<Weekday>.html: interactive Bokeh plots for each weekday with sessions\n")
 
-    # Console summary
     print("== Number of distinct practice dates per weekday ==")
     print(weekday_counts)
     print("\nSaved:")
     print(f"- {os.path.join(args.outdir, 'weekday_practice_counts.csv')}")
-    print(f"- {os.path.join(args.outdir, 'fractions_by_user_per_weekday.csv')}")
-    print(f"- {os.path.join(args.outdir, 'surplus_timeseries_by_weekday.csv')}")
-    print(f"- {os.path.join(args.outdir, 'surplus_*.png')}")
+    print(f"- {os.path.join(args.outdir, 'fractions_by_weekday_meetupname.csv')}")
+    print(f"- {os.path.join(args.outdir, 'deficit_timeseries_by_weekday.csv')}")
+    print(f"- {os.path.join(args.outdir, 'surplus_*.html')}")
 
 if __name__ == "__main__":
     main()
