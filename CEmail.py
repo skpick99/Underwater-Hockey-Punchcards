@@ -50,7 +50,8 @@ class CEmail:
     def composeUsePunchcardEmail(self, playerID, meetupName, date, pcRow, pcIdx, bEarlyBird, starcount, gameStars):
         
         punchcards = CPunchcards.CPunchcards()
-        remainingPunches = punchcards.totalSlotCount - pcIdx - 1
+        # Calculate remaining punches using utility function
+        punches_used, remainingPunches, total_slots = punchcards.countPunchcardSlots(pcRow)
         boughtNextCard = False
         if remainingPunches <= 2:
             if punchcards.getPunchcardCount(playerID) > 1:
@@ -78,8 +79,13 @@ class CEmail:
         body += "You used punch number " + str(pcIdx+1) + " on the punchcard you purchased on " + pcRow[punchcards.P_PURCHASEDATE] + "\n"
         if gameStars != 20:
             body += "You were only charged for a partial game. You were credited 10 stars (half of a free game) because we can't do partial punches.\n"
+        # Display punch slots, but handle NULL value for new 10-punch cards
         for i in range(punchcards.totalSlotCount):
-            body += "%10d %s\n" % (i+1, self.convertDate(pcRow[punchcards.slotIdx(i)]))
+            slotValue = pcRow[punchcards.slotIdx(i)]
+            if slotValue == 'NULL':
+                # Skip displaying NULL value in emails
+                continue
+            body += "%10d %s\n" % (i+1, self.convertDate(slotValue))
         body += "You have %d punches remaining." % (remainingPunches)
         
         if remainingPunches > 0 and remainingPunches <= 2 and not boughtNextCard:
@@ -128,8 +134,10 @@ class CEmail:
             for slot in range(punchcards.totalSlotCount):
                 slotVal = remainingPunchcards[0][punchcards.slotIdx(slot)]
                 if not slotVal is None and len(slotVal) == 0:
-                    break            
-            body += "Your previous punchcard (purchased on " + remainingPunchcards[0][3] + ") has " + str(punchcards.totalSlotCount - slot) + " slots remaining. We will finish it up first so you won't lose any plays.\n"  
+                    break
+            # Calculate remaining slots using utility function
+            _, remainingSlots, _ = punchcards.countPunchcardSlots(remainingPunchcards[0])
+            body += "Your previous punchcard (purchased on " + remainingPunchcards[0][3] + ") has " + str(remainingSlots) + " slots remaining. We will finish it up first so you won't lose any plays.\n"  
         body += "\nThanks for supporting Underwater Hockey.  We'll see you on the bottom.\n"
         return subject,body 
   
@@ -174,8 +182,15 @@ class CEmail:
 
     #-------------------------------------------------------------------------------    
     def sendEmail(self, toAddress, subject, message):
-  
-        # Create the email
+  	# Display the email
+        print("-----------------------------------: Email successfully sent TO", toAddress)
+        print("SUBJECT", subject)
+        print("TEXT", message)
+        print("-----------------------------------------------------------------")
+
+        # Send the email
+        # TEMPORARILY DISABLED FOR TESTING
+        return True
         msg = EmailMessage()
         msg['Subject'] = subject
         msg['From'] = self.info.getValue("club_email")
@@ -186,22 +201,6 @@ class CEmail:
             smtp.login(self.info.getValue("club_email"), self.GOOGLE_APP_PASSWORD)
             smtp.send_message(msg)
 
-        # SENDGRID EMAIL DISCONTINUED
-        #mail = Mail(from_email, toAddress, subject, message)
-        ##mail_json = mail.get()
-        ##try:
-        #sg = SendGridAPIClient(self.SENDGRID_API_KEY)
-        #response = sg.send(mail)            
-        ##response = my_sg.client.mail.send.post(request_body=mail_json)
-        #pass
-        ##except:
-        ##    print("ERROR 959: Email not successfully sent TO", toAddress, "SUBJECT", subject, "TEXT", message)            
-        ##    return False
-        
-        print("-----------------------------------: Email successfully sent TO", toAddress)
-        print("SUBJECT", subject)
-        print("TEXT", message)
-        print("-----------------------------------------------------------------")
         return True
 
 #-------------------------------------------------------------------------------           

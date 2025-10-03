@@ -309,7 +309,8 @@ class CGameDay:
         pcIdx,slot,isAlt = punchcards.getNextFreePaymentSlot(player=hockeyID)
         paid = False
         if slot >= 0:
-            print(hockeyID, playerInfo[self.M_MEETUPNAME], ">>> Payment", slot+1, " (", 10-slot, "left on this card )")
+            _, remainingPunches, _ = punchcards.countPunchcardSlots(punchcards.punchcards[pcIdx])
+            print(hockeyID, playerInfo[self.M_MEETUPNAME], ">>> Payment", slot+1, " (", remainingPunches, "left on this card )")
             paid = punchcards.makePaymentBySlot(pcIdx, slot, self.date)
         if paid:
             emailAddress = roster.getEmail(hockeyID) 

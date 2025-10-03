@@ -9,7 +9,7 @@
 
   <p align="center">
     The system tracks payments by players for UWH games. It integrates with Meetup as a signup platform for each game.
-    Players purchase "punchcards" which allows them to play 11 games ("Buy ten. Get one free"). Then, each time they 
+    Players purchase "punchcards" which allows them to play 10 games. Then, each time they 
     signup and play a UWH game, the system records it on their punchcard and sends them an email. When they use up
     their punchcard, it prompts them to purchase a new one.
     <br />
