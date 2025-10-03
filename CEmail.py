@@ -189,8 +189,6 @@ class CEmail:
         print("-----------------------------------------------------------------")
 
         # Send the email
-        # TEMPORARILY DISABLED FOR TESTING
-        return True
         msg = EmailMessage()
         msg['Subject'] = subject
         msg['From'] = self.info.getValue("club_email")
