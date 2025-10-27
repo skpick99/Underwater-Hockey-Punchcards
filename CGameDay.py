@@ -17,7 +17,7 @@ class CGameDay:
     def __init__(self, date = ""):
         self.path = getHockeyPath()
         self.M_MEETUPNAME = 0
-        self.M_MEETUPUSERID = 1
+        self.M_MEETUPUSERID = 2
         self.M_SIGNUPTIME = 6
         self.X_MEETUPNAME = 0           
         self.X_MEETUPUSERID = 1
@@ -107,7 +107,7 @@ class CGameDay:
         
     #-------------------------------------------------------------------------------    
     def addNewXref(self, hockeyID, meetupName, meetupID):
-        if meetupID in self.idXref:
+        if meetupID in self.idXref or 'user ' + meetupID in self.idXref:
 
             print("ERROR 977: Trying to add player who is already in the roster XREF. Contact ", 
                   self.info.getValue("admin_contact_info"), hockeyID, meetupName, meetupID)
@@ -233,9 +233,15 @@ class CGameDay:
     #-------------------------------------------------------------------------------    
     def getHockeyID(self, meetupID):
         try:
-            retval = self.idXref[meetupID]
+            if meetupID in self.idXref:
+                retval = self.idXref[meetupID]
+            elif 'user ' + meetupID in self.idXref:
+                retval = self.idXref['user ' + meetupID]
+            else:
+                retval = meetupID
         except:
             retval = meetupID
+            print("ERROR 483: meetupID not found in cross reference ", meetupID)
         return retval
 
 
