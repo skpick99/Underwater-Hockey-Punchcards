@@ -29,7 +29,8 @@ class CMenu:
         print()
         print("0. Change game date")
         print("   '-' to decrease, '+' to increase")
-        print("1. Download list of attendees from last practice")
+        print("1. Instructions")
+        #print("1. Download list of attendees from last practice")        
         print("2. Display download")
         print("3. Charge punchcards for current game")
         print("4. Manual punch")
@@ -68,9 +69,24 @@ class CMenu:
                 print()
                 _ = input("")
 
-            # download list of attendees from last practice
-            elif choice == "1":   
-                downloadLastPracticeAttendees(self.gamedate.strftime('%Y%m%d'))
+            # deprecated (temporarily?) --> download list of attendees from last practice
+            # instructions
+            elif choice == "1":
+                #downloadLastPracticeAttendees(self.gamedate.strftime('%Y%m%d'))
+                for i in range(7):
+                    print()
+                print("First step: Download the latest hockey game to your normal Download directory.")
+                print("Second step: Rename the file to the date of the game, for example 20260110.csv")
+                print("Third step: Use the +/- keys to set the date to the date of the game. (Nothing required if you're going it on gameday.)") 
+                print("Fourth step: Choose menu item 2 to view the download and make sure the players are correct.")
+                print("Fifth step: Choose menu item 3 to charge everyone's punchcards and send the emails.")
+                print("Sixth step: Use menu item 4 to charge players who played without signing up on Meetup (if necessary)")
+                print()
+                print()
+                print("Press <enter> to return to the main menu")
+                for i in range(7):
+                    print()
+                _ = input("")
             
             # display list of attendees from last practice
             elif choice == "2":

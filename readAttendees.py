@@ -181,6 +181,29 @@ def downloadAttendees(urlSuffix="?type=upcoming"):
     return pathname, filename
 
 #-------------------------------------------------------------------------------
+def checkForDownload(date):
+    # get game date
+    if len(date) != 8:
+        print(f"ERROR 428: Invalid date ('{date}')\n")
+        return False
+
+    # calculate paths
+    dirname = getDownloadPath()
+    dirname_dest = os.path.join(getHockeyPath(), "games")    
+    os.makedirs(dirname_dest, exist_ok=True)
+
+    gameday_source = os.path.join(dirname, date + ".csv")
+    gameday_dest = os.path.join(dirname_dest, date + ".csv")
+    gameday_source_exists = os.path.isfile(gameday_source)
+    gameday_dest_exists = os.path.isfile(gameday_dest)
+
+    # copy Underwater_Hockey file from 'Downloads' folder to the autopay folder
+    if not gameday_dest_exists:
+        shutil.copyfile(gameday_source, gameday_dest)
+        print("INFO 421: Underwater Hockey gameday file for '" + date + "' has been copied into the 'autopay//games' folder")
+    return True
+
+#-------------------------------------------------------------------------------
 if __name__ == "__main__":
 
     #downloadNextPracticeAttendees()

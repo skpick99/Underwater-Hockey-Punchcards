@@ -5,6 +5,7 @@ import CPunchcards
 import CEmail
 import CRoster
 from CInfo import CInfo
+from readAttendees import *
 from utils import *
 import pandas as pd
 import datetime
@@ -51,6 +52,8 @@ class CGameDay:
 
         # new MeetUp file format
         filepath = os.path.join(self.path, "games", f"{self.date}.csv")
+        if not os.path.exists(filepath):
+            checkForDownload(self.date)
         if os.path.exists(filepath):
             try:
                 self.fileDelimiter = ','
