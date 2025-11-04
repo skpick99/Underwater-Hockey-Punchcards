@@ -184,7 +184,7 @@ def fractions_by_person_per_weekday(sessions_df: pd.DataFrame, attendance_df: pd
 
     return frac
 
-def make_bokeh_surplus_plots(sessions_df: pd.DataFrame, outdir: str, revenue_per_person: float = 10.0, pool_cost: float = 105.0) -> pd.DataFrame:
+def make_bokeh_surplus_plots(sessions_df: pd.DataFrame, outdir: str, revenue_per_person: float = 100.0/11.0, pool_cost: float = 105.0) -> pd.DataFrame:
     if sessions_df.empty:
         return pd.DataFrame(columns=["WeekdayName","Date","Attendees","Delta","Deficit"])
 
@@ -277,7 +277,7 @@ def main():
     fractions_df = fractions_by_person_per_weekday(sessions_df, attendance_df)
 
     # 3) Interactive Bokeh deficit plots & data
-    deficit_df = make_bokeh_surplus_plots(sessions_df, args.outdir, revenue_per_person=10.0, pool_cost=105.0)
+    deficit_df = make_bokeh_surplus_plots(sessions_df, args.outdir, revenue_per_person=100.0/11.0, pool_cost=105.0)
 
     # Save outputs
     weekday_counts.to_csv(os.path.join(args.outdir, "weekday_practice_counts.csv"), header=["Count"])
