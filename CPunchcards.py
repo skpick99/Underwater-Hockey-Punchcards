@@ -525,7 +525,7 @@ class CPunchcards:
                 meetupName = roster.getMeetupName(this_player)
                 playdates = []
                 for i in range(self.totalSlotCount):
-                    if len(row[self.slotIdx(i)]) > 0:
+                    if len(row[self.slotIdx(i)]) > 0 and row[self.slotIdx(i)] != "NULL":
                         playdates.append(row[self.slotIdx(i)])
                 subject, body = email.composePastDueEmail(this_player, meetupName, playdates)
                 email.sendEmail(emailAddress, subject, body)    
