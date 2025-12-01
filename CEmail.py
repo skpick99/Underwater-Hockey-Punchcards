@@ -88,10 +88,11 @@ class CEmail:
             body += "%10d %s\n" % (i+1, self.convertDate(slotValue))
         body += "You have %d punches remaining." % (remainingPunches)
         
-        if remainingPunches > 0 and remainingPunches <= 2 and not boughtNextCard:
-            body += self.readFileToString("email_buysoon.txt")
-        else:
-            body += self.readFileToString("email_noupcomingbuyrequired.txt")
+        if remainingPunches > 0 and remainingPunches <= 2:
+            if boughtNextCard:
+                body += self.readFileToString("email_noupcomingbuyrequired.txt")
+            else:
+                body += self.readFileToString("email_buysoon.txt")
             
         if remainingPunches == 0:
             if boughtNextCard:
