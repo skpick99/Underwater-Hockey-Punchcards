@@ -199,6 +199,12 @@ def checkForDownload(date):
 
     # copy Underwater_Hockey file from 'Downloads' folder to the autopay folder
     if not gameday_dest_exists:
+        if not gameday_source_exists:
+            print()
+            for i in range(10):
+                print("ERROR 428: You did not download the file or you did not rename it to YYYYMMDD.csv")
+            print()
+            input("Hit <enter> to continue ")
         shutil.copyfile(gameday_source, gameday_dest)
         print("INFO 421: Underwater Hockey gameday file for '" + date + "' has been copied into the 'autopay//games' folder")
     return True
