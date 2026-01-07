@@ -146,7 +146,7 @@ class CMenu:
                 pc.countGamesPlayedInYear()       
                 x = pc.countPrepaymentPunches()
                 print()
-                print(x, "prepaid, but not yet used, punches.  Total value (at $9.00 each) is   $", x*9)
+                print(x, "prepaid, but not yet used, punches.  Total value (at $10.00 each) is   $", x*10)
                 print()
     
         return              

@@ -2,6 +2,8 @@ import os
 import sys
 import csv
 from datetime import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
 import CRoster
 import CEmail
 from CInfo import CInfo
@@ -591,8 +593,8 @@ class CPunchcards:
     #-------------------------------------------------------------------------------
     # count historical punches used for each player in a given period of time
     def countGamesPlayedInYear(self):          
-        startdate = '20240101'
-        enddate = '20241231'
+        startdate = '20250101'
+        enddate = '20251231'
         historicPunchcards = self.loadPunchcards(includeHistory=True)
         playerCountDict, totalGameCount = self.countPunchesUsed(historicPunchcards, startdate, enddate)
         sortedPlayerCountsDict = dict(sorted(playerCountDict.items(), key=lambda item: item[1]['count'], reverse=True))
@@ -600,16 +602,72 @@ class CPunchcards:
         for x in sortedPlayerCountsDict:
             print(sortedPlayerCountsDict[x]['name'], sortedPlayerCountsDict[x]['count'])        
             
+    #-------------------------------------------------------------------------------
+    # count historical punches used for each player in a given period of time
+    def countAttendencePerDate(self):          
+        PLOT_START = pd.Timestamp("2025-01-01")
+        PLOT_END   = pd.Timestamp("2025-12-31")
+        MA_WINDOW = 8
+        # lazy Scott used AI and it wanted a pandas dataframe
+        df = pd.read_csv(os.path.join(self.path, "punchcards.csv"), sep="\t")
+        #df = self.loadPunchcards(includeHistory=True)
+        # --- Collect all PlayDate* columns ---
+        playdate_cols = [c for c in df.columns if c.startswith("PlayDate")]
+        # --- Flatten to a single Series ---
+        all_playdates = pd.Series(df[playdate_cols].values.ravel())
+        # --- Convert to datetime, invalid values -> NaT ---
+        dates = pd.to_datetime(
+            all_playdates,
+            format="%Y%m%d",
+            errors="coerce"   # blanks, NULL, 'test', etc -> NaT
+        ).dropna()
+
+        # --- Back up data collection by 6 Sundays ---
+        collection_start = PLOT_START - pd.Timedelta(weeks=MA_WINDOW)
+        dates = dates[
+        (dates >= collection_start) &
+        (dates <= PLOT_END)
+        ]
+        # --- Sundays only ---
+        dates = dates[dates.dt.weekday == 6]
+        # --- Count plays per Sunday ---
+        counts = dates.value_counts().sort_index()
+        result = counts.to_frame(name="plays")
+
+        # --- 6-Sunday moving average
+        #     (only over existing Sundays; gaps ignored naturally)
+        result["ma"] = result["plays"].rolling(MA_WINDOW).mean()
+
+
+        # --- Trim for plotting only ---
+        plot_data = result[result.index >= PLOT_START]
+        overall_avg = plot_data["plays"].mean()
+
+        # --- Plot ---
+        plt.figure()
+        plt.plot(plot_data.index, plot_data["plays"], label="Plays per Sunday")
+        plt.plot(plot_data.index, plot_data["ma"], label="8-Sunday Moving Avg")
+        plt.axhline(overall_avg, linestyle="--",
+            label=f"Overall Avg ({overall_avg:.1f})")        
+        plt.legend()
+        plt.xlabel("Date")
+        plt.ylabel("Number of Plays")
+        plt.title("Sunday Play Counts (Gaps Ignored)")
+        plt.ylim(bottom=0)
+        plt.show()          
+                
 #-------------------------------------------------------------------------------           
 if __name__ == "__main__":        
     
     pc = CPunchcards()
     
+    pc.countAttendencePerDate()
+
     pc.countGamesPlayedInYear()   
     
     x = pc.countPrepaymentPunches()
     print()
-    print(x, "prepaid, but not yet used, punches.  Total value (at $9.00 each) is   $", x*9)
+    print(x, "prepaid, but not yet used, punches.  Total value (at $10.00 each) is   $", x*10)
     print()
     
     print("all done")
