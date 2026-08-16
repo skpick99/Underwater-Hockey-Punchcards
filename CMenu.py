@@ -41,6 +41,8 @@ class CMenu:
         print("8. Punchcard purchase")
         print("9. Send past-due notices")
         print("A. Prepaid counts")
+        print("B. Add new player from Internet Response")
+        print("C. Create a 5-game new player punchcard")
         print()
         choice = input("Enter selection (or <enter> to quit) ")
         return choice
@@ -146,8 +148,20 @@ class CMenu:
                 pc.countGamesPlayedInYear()       
                 x = pc.countPrepaymentPunches()
                 print()
-                print(x, "prepaid, but not yet used, punches.  Total value (at $10.00 each) is   $", x*10)
+                print(x, "prepaid, but not yet used, punches.  Total value (at $12.50 each) is   $", x*12.5)
                 print()
+
+            # add new player from Meetup signup sheet
+            elif choice == "B" or choice == "b":
+                g = CGameDay(self.gamedate.strftime('%Y%m%d'))
+                if g.isValid():
+                    g.addPlayerFromSignup() 
+
+            # small free punchcard for new player
+            elif choice == "C" or choice == "c":
+                pc = CPunchcards()
+                pc.addNewPlayerPunchcards()
+                pc._savePunchcards()    
     
         return              
             

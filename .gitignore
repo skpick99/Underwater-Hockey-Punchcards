@@ -1,0 +1,11 @@
+**/.vs/
+**/example_data_files/
+
+*.json
+*.xls
+*.csv
+*.zip
+
+__pycache__/
+history/
+games/

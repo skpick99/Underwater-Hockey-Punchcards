@@ -178,6 +178,46 @@ class CGameDay:
             print("Invalid choice")
 
     #-------------------------------------------------------------------------------    
+    def addPlayerFromSignup(self):
+
+        df = pd.read_csv(os.path.join(self.path, "responses.csv"), sep=",")
+        print(df['Name'])
+
+        choice = input("Which choice would you like to add? ")
+        try:
+            choice_val = int(choice)
+            if 0 <= choice_val < len(df):
+                row = df.iloc[choice_val]
+                addYN = input(row['Name'] + " will be added. OK? ['Y' to add] ")
+                if addYN.upper().startswith('Y'):
+                    add_meetup_id = "???" + row['Name']
+                    add_meetup_name = "???" + row['Name']
+                    add_hockey_id = row['Name']
+                    email = row['Email']
+                    phone = row['Phone Number (if yes to the above)']
+                    xx = row['Name'].find(' ')
+                    if xx > 0:
+                        fname = row['Name'][:xx]
+                        lname = row['Name'][xx+1:]
+                    else:
+                        fname = row['Name']
+                        lname = row['Name']
+
+                    roster = CRoster.CRoster()
+                    roster.addNewPlayer(add_hockey_id, add_meetup_name, fname, lname, email, "", "", phone)
+                    self.addNewXref(add_hockey_id, add_meetup_name, add_meetup_id)
+                    roster.saveRoster()
+                    print()
+                    print(f"*** Added to roster --> {row['Name']} ***")
+                else:
+                    print()
+                    print("*** Nothing done ***")
+            else:
+                print("Nothing done")
+        except ValueError:
+            print("Invalid choice")
+
+    #-------------------------------------------------------------------------------    
     def isEarlyBird(self, meetupID, gameDate):
         # all variables as datetime
         dt_signupTime = self.gameday[meetupID][self.M_SIGNUPTIME]

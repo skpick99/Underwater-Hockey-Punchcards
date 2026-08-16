@@ -122,6 +122,13 @@ class CEmail:
         return subject,body
   
     #-------------------------------------------------------------------------------    
+    def composeFreePunchcardForNewPlayerEmail(self, meetupName, date, remainingPunchcards, bPastDuePunches):      
+        subject = "Your new Underwater Hockey punchcard has been activated!"
+        body = "Hi " + meetupName + ",\n\n"
+        body += self.readFileToString("email_new_player.txt")
+        return subject,body 
+  
+    #-------------------------------------------------------------------------------    
     def composePunchcardPurchaseEmail(self, meetupName, date, remainingPunchcards, bPastDuePunches):
         
         punchcards = CPunchcards.CPunchcards()

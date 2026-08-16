@@ -224,7 +224,9 @@ class CPunchcards:
             newrow[self.P_HOCKEYUSERID] = player
             newrow[self.P_MEETUPNAME] = roster.getMeetupName(player)
             newrow[self.P_STATUS] = "pastdue"
-            # New cards (including past due) are 10-punch cards with NULL value in PlayDate11 slot
+            # New cards (including past due) are 8-punch cards with NULL value in PlayDate11 slot
+            newrow[self.PLAY_DATE_INDICES[9]]  = 'NULL'  # Put NULL in PlayDate09 slot
+            newrow[self.PLAY_DATE_INDICES[10]] = 'NULL'  # Put NULL in PlayDate10 slot
             newrow[self.PLAY_DATE_INDICES[11]] = 'NULL'  # Put NULL in PlayDate11 slot
             self.punchcards.append(newrow)
             
@@ -367,8 +369,71 @@ class CPunchcards:
             newPunchcard[self.P_MEETUPNAME] = playerMeetupName
             newPunchcard[self.P_STATUS] = "curr"
             newPunchcard[self.P_PURCHASEDATE] = currentDate
+            newPunchcard[self.PLAY_DATE_INDICES[9]] = 'NULL'  # Put NULL in PlayDate11 slot
+            newPunchcard[self.PLAY_DATE_INDICES[10]] = 'NULL'  # Put NULL in PlayDate11 slot
             newPunchcard[self.PLAY_DATE_INDICES[11]] = 'NULL'  # Put NULL in PlayDate11 slot
             self.punchcards.append(newPunchcard)            
+        return
+    
+    #-------------------------------------------------------------------------------    
+    def addNewPlayerPunchcards(self):
+        
+        roster = CRoster.CRoster()
+        email = CEmail.CEmail()
+        
+        print()
+        print()
+        print("Issue Partial Punchcard to New Player")
+        
+        playerRecord = roster.getPlayerName()
+        if playerRecord is None:
+            print("exiting Punchcard Purchase ...")
+            return
+        
+        playerHockeyID = playerRecord[roster.R_HOCKEYUSERID]            
+        playerMeetupName = playerRecord[roster.R_MEETUPNAME]
+        playerEmail = playerRecord[roster.R_EMAIL]
+        currentDate = datetime.today().strftime('%m/%d/%Y')
+        remainingPunchcards = self.getPunchcards(player=playerHockeyID, status="curr")
+        
+        if len(playerEmail) == 0:
+            print("\nEEEEEEEEEEERRRRRRRRRRRRRRROOOOOOOOOOOOORRRRRRRRRRRRR ERROR ERROR ERROR EEEEEEEEEEEEEERRRRRRRRRRRROOOOOORRRRRRRRRRR\n")            
+            print("We cannot add a punchcard to a player who doesn't have a valid email address in roster.csv")
+            print("\nEEEEEEEEEEERRRRRRRRRRRRRRROOOOOOOOOOOOORRRRRRRRRRRRR ERROR ERROR ERROR EEEEEEEEEEEEEERRRRRRRRRRRROOOOOORRRRRRRRRRR\n")
+            input("Press enter to continue ...")
+            return
+        
+        # if past due card found, make it a current card by (1) change 'pastdue' to 'curr, and (2) set the purchase date
+        pcPastDueIdx = self.getPastDueCard(playerHockeyID)
+        if pcPastDueIdx >= 0:
+            print("\nEEEEEEEEEEERRRRRRRRRRRRRRROOOOOOOOOOOOORRRRRRRRRRRRR ERROR ERROR ERROR EEEEEEEEEEEEEERRRRRRRRRRRROOOOOORRRRRRRRRRR\n")            
+            print("This is not a new player. He already has a past due punchcard")
+            print("\nEEEEEEEEEEERRRRRRRRRRRRRRROOOOOOOOOOOOORRRRRRRRRRRRR ERROR ERROR ERROR EEEEEEEEEEEEEERRRRRRRRRRRROOOOOORRRRRRRRRRR\n")
+            input("Press enter to continue ...")
+            return     
+
+        # inform the purchaser and the club treasurer we added a punchcard
+        subject, body = email.composeFreePunchcardForNewPlayerEmail(playerMeetupName, currentDate, remainingPunchcards, False)        
+        ccList = self.info.getValue("cc_purchase") 
+        for ccEmail in ccList:                
+            email.sendEmail(ccEmail, "A punchcard has been activated for " + playerMeetupName, body)
+        email.sendEmail(playerEmail, subject, body)                    
+            
+        # add the punchcard
+        # New cards are 10-punch cards with NULL value in PlayDate11 slot
+        newPunchcard = self.createEmptyRow()
+        newPunchcard[self.P_HOCKEYUSERID] = playerHockeyID
+        newPunchcard[self.P_MEETUPNAME] = playerMeetupName
+        newPunchcard[self.P_STATUS] = "curr"
+        newPunchcard[self.P_PURCHASEDATE] = currentDate
+        newPunchcard[self.PLAY_DATE_INDICES[6]] = 'NULL'  # Put NULL in PlayDate11 slot
+        newPunchcard[self.PLAY_DATE_INDICES[7]] = 'NULL'  # Put NULL in PlayDate11 slot
+        newPunchcard[self.PLAY_DATE_INDICES[8]] = 'NULL'  # Put NULL in PlayDate11 slot
+        newPunchcard[self.PLAY_DATE_INDICES[9]] = 'NULL'  # Put NULL in PlayDate11 slot
+        newPunchcard[self.PLAY_DATE_INDICES[10]] = 'NULL'  # Put NULL in PlayDate11 slot
+        newPunchcard[self.PLAY_DATE_INDICES[11]] = 'NULL'  # Put NULL in PlayDate11 slot
+        self.punchcards.append(newPunchcard) 
+        
         return
     
     #-------------------------------------------------------------------------------    
@@ -667,7 +732,7 @@ if __name__ == "__main__":
     
     x = pc.countPrepaymentPunches()
     print()
-    print(x, "prepaid, but not yet used, punches.  Total value (at $10.00 each) is   $", x*10)
+    print(x, "prepaid, but not yet used, punches.  Total value (at $12,50 each) is   $", x * 12,5)
     print()
     
     print("all done")

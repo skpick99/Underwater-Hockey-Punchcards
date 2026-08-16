@@ -3,6 +3,7 @@ import sys
 import csv
 from utils import *
 from CInfo import CInfo
+import pandas as pd
 
 #-------------------------------------------------------------------------------
 class CRoster:
