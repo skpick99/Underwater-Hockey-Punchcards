@@ -10,9 +10,19 @@ def isChromeRunning():
             return True
     return False
 
-#-------------------------------------------------------------------------------        
+#-------------------------------------------------------------------------------
 def getHockeyPath():
     return os.path.abspath(os.path.dirname(__file__))
+
+#-------------------------------------------------------------------------------
+def getDataPath():
+    # sensitive data files (rosters, punchcards, responses) live here, outside the repo
+    return os.path.join(getHockeyPath(), "data")
+
+#-------------------------------------------------------------------------------
+def getEmailPath():
+    # email template text files live here
+    return os.path.join(getHockeyPath(), "emails")
 
 #-------------------------------------------------------------------------------        
 def getDownloadPath():

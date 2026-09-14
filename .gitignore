@@ -9,3 +9,5 @@
 __pycache__/
 history/
 games/
+data/
+meetup_csvs/

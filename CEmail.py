@@ -35,7 +35,7 @@ class CEmail:
     #-------------------------------------------------------------------------------    
     def readFileToString(self, filename):
         try:
-            filepath = os.path.join(self.path, filename)
+            filepath = os.path.join(getEmailPath(), filename)
             with open(filepath, 'r') as file:
                 content = file.read()
             return content

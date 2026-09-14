@@ -36,7 +36,7 @@ class CRoster:
     #-------------------------------------------------------------------------------    
     def _loadRoster(self):
         self.roster = {}
-        filepath = os.path.join(self.path, "roster.csv")
+        filepath = os.path.join(getDataPath(), "roster.csv")
         with open(filepath, newline='') as csvfile:
             rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
             next(rows)  # skip header
@@ -51,7 +51,7 @@ class CRoster:
         meetup_name_list = [self.roster[player][self.R_MEETUPNAME].upper() for player in player_list]
         sort_index = sorted(range(len(meetup_name_list)), key=meetup_name_list.__getitem__)
 
-        filepath = os.path.join(self.path, "roster.csv")
+        filepath = os.path.join(getDataPath(), "roster.csv")
         with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(self.rosterFileHeader)

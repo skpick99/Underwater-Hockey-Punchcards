@@ -63,9 +63,9 @@ class CPunchcards:
     def loadPunchcards(self, includeHistory = False):
         
         punchcardList = []
-        filepaths = [os.path.join(self.path, "punchcards.csv")]
+        filepaths = [os.path.join(getDataPath(), "punchcards.csv")]
         if includeHistory:
-            filepaths.append(os.path.join(self.path, "punchcards_history.csv"))
+            filepaths.append(os.path.join(getDataPath(), "punchcards_history.csv"))
         for filepath in filepaths:
             with open(filepath, newline='') as csvfile:
                 rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -81,8 +81,8 @@ class CPunchcards:
     #-------------------------------------------------------------------------------    
     def _savePunchcards(self):
 
-        self.validatePunchcards() 
-        filepath = os.path.join(self.path, "punchcards.csv")
+        self.validatePunchcards()
+        filepath = os.path.join(getDataPath(), "punchcards.csv")
         with open(filepath, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(self.punchcardFileHeader)
@@ -567,7 +567,7 @@ class CPunchcards:
     def _loadPastDuePunchcards(self):
         
         self.pastDuePunchcards = []
-        filepath = os.path.join(self.path, "punchcards.csv")
+        filepath = os.path.join(getDataPath(), "punchcards.csv")
         with open(filepath, newline='') as csvfile:
             rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
             next(rows)
@@ -608,7 +608,7 @@ class CPunchcards:
         # this happened to Mike Sick and Aniket during a period when I was manually entering punches due to a site breakage on Meetup.
         # it occurs naturally sometimes, e.g. Paden/Denise and Brian/daughter and Omri's final half-punchcard
         
-        filepath = os.path.join(self.path, "punchcards.csv")
+        filepath = os.path.join(getDataPath(), "punchcards.csv")
         with open(filepath, newline='') as csvfile:
             rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
             for row in rows:
@@ -674,7 +674,7 @@ class CPunchcards:
         PLOT_END   = pd.Timestamp("2025-12-31")
         MA_WINDOW = 8
         # lazy Scott used AI and it wanted a pandas dataframe
-        df = pd.read_csv(os.path.join(self.path, "punchcards.csv"), sep="\t")
+        df = pd.read_csv(os.path.join(getDataPath(), "punchcards.csv"), sep="\t")
         #df = self.loadPunchcards(includeHistory=True)
         # --- Collect all PlayDate* columns ---
         playdate_cols = [c for c in df.columns if c.startswith("PlayDate")]

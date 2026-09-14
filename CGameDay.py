@@ -93,7 +93,7 @@ class CGameDay:
     #-------------------------------------------------------------------------------    
     def _createXref(self):  
         self.idXref = {}
-        filepath = os.path.join(self.path, "meetup_roster.csv")
+        filepath = os.path.join(getDataPath(), "meetup_roster.csv")
         try:
             with open(filepath, newline='') as csvfile:
                 rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -117,7 +117,7 @@ class CGameDay:
             sys.exit(92)
             
         # load the meetup_roster.csv file
-        filepath = os.path.join(self.path, "meetup_roster.csv")
+        filepath = os.path.join(getDataPath(), "meetup_roster.csv")
         rowlist = []
         with open(filepath, newline='') as csvfile:
             rows = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -180,7 +180,7 @@ class CGameDay:
     #-------------------------------------------------------------------------------    
     def addPlayerFromSignup(self):
 
-        df = pd.read_csv(os.path.join(self.path, "responses.csv"), sep=",")
+        df = pd.read_csv(os.path.join(getDataPath(), "responses.csv"), sep=",")
         print(df['Name'])
 
         choice = input("Which choice would you like to add? ")
